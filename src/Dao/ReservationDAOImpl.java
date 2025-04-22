@@ -1,7 +1,6 @@
 package Dao;
 
 import Modele.Reservation;
-
 import java.sql.*;
 import java.util.ArrayList;
 
@@ -36,22 +35,15 @@ public class ReservationDAOImpl implements ReservationDAO {
     @Override
     public void ajouter(Reservation reservation) {
         String sql = "INSERT INTO Reservations (utilisateur_id, hebergement_id, date_arrivee, date_depart, " +
-                "adultes, enfants, prix_total, statut, date_creation) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "adultes, enfants, prix_total, statut) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
         try (Connection connexion = daoFactory.getConnection();
              PreparedStatement stmt = connexion.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
-            // On fixe la date de création à maintenant si elle est nulle
-            if (reservation.getDateCreation() == null) {
-                reservation.setDateCreation(new Date(System.currentTimeMillis()));
-            }
-
-            // Passage des paramètres
             setReservationParameters(stmt, reservation);
-
             stmt.executeUpdate();
 
-            // Récupération de l'ID généré
+            // Récupérer l'ID généré
             try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                 if (generatedKeys.next()) {
                     reservation.setReservationId(generatedKeys.getInt(1));
@@ -111,14 +103,14 @@ public class ReservationDAOImpl implements ReservationDAO {
     @Override
     public Reservation modifier(Reservation reservation) {
         String sql = "UPDATE Reservations SET utilisateur_id = ?, hebergement_id = ?, date_arrivee = ?, " +
-                "date_depart = ?, adultes = ?, enfants = ?, prix_total = ?, statut = ?, date_creation = ? " +
+                "date_depart = ?, adultes = ?, enfants = ?, prix_total = ?, statut = ? " +
                 "WHERE reservation_id = ?";
 
         try (Connection connexion = daoFactory.getConnection();
              PreparedStatement stmt = connexion.prepareStatement(sql)) {
 
             setReservationParameters(stmt, reservation);
-            stmt.setInt(10, reservation.getReservationId());
+            stmt.setInt(9, reservation.getReservationId());
             stmt.executeUpdate();
 
         } catch (SQLException e) {
@@ -144,54 +136,35 @@ public class ReservationDAOImpl implements ReservationDAO {
     }
 
     // Méthodes utilitaires privées
-
     private Reservation mapResultSetToReservation(ResultSet resultats) throws SQLException {
-        // Récupération des dates sous format String (si elles sont stockées sous un autre type dans la BDD)
-        String dateArriveeString = resultats.getString("date_arrivee");
-        String dateDepartString = resultats.getString("date_depart");
-
-        // Conversion des dates de String à java.sql.Date (si nécessaire)
-        java.sql.Date dateArrivee = null;
-        java.sql.Date dateDepart = null;
-
-        if (dateArriveeString != null) {
-            dateArrivee = java.sql.Date.valueOf(dateArriveeString);  // Conversion
-        }
-
-        if (dateDepartString != null) {
-            dateDepart = java.sql.Date.valueOf(dateDepartString);  // Conversion
-        }
-
         return new Reservation(
                 resultats.getInt("reservation_id"),
                 resultats.getInt("utilisateur_id"),
                 resultats.getInt("hebergement_id"),
-                dateArrivee,       // Utilisation de la date convertie
-                dateDepart,        // Utilisation de la date convertie
+                resultats.getDate("date_arrivee"),
+                resultats.getDate("date_depart"),
                 resultats.getInt("adultes"),
                 resultats.getInt("enfants"),
                 resultats.getDouble("prix_total"),
                 resultats.getString("statut"),
-                resultats.getDate("date_creation")  // Cette date est déjà un java.sql.Date
+                resultats.getDate("date_creation")
         );
     }
-
 
     private void setReservationParameters(PreparedStatement stmt, Reservation reservation) throws SQLException {
         stmt.setInt(1, reservation.getUtilisateurId());
         stmt.setInt(2, reservation.getHebergementId());
-        stmt.setDate(3, reservation.getDateArrivee());  // java.sql.Date
-        stmt.setDate(4, reservation.getDateDepart());   // java.sql.Date
+        stmt.setDate(3, reservation.getDateArrivee());
+        stmt.setDate(4, reservation.getDateDepart());
         stmt.setInt(5, reservation.getAdultes());
         stmt.setInt(6, reservation.getEnfants());
         stmt.setDouble(7, reservation.getPrixTotal());
         stmt.setString(8, reservation.getStatut());
-        stmt.setDate(9, reservation.getDateCreation()); // java.sql.Date
     }
-
 
     private void handleSQLException(SQLException e, String message) {
         e.printStackTrace();
         System.out.println(message + ": " + e.getMessage());
+        // Vous pourriez aussi logger cette erreur ou la propager
     }
 }

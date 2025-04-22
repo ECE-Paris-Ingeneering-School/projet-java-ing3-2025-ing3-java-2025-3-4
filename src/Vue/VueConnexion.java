@@ -3,7 +3,6 @@ package Vue;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionListener;
-
 public class VueConnexion extends JFrame {
     private JTextField champEmail;
     private JPasswordField champMdp;
@@ -15,11 +14,7 @@ public class VueConnexion extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Conteneur principal en BorderLayout
-        setLayout(new BorderLayout(10, 10));
-
-        // Panel principal au centre (formulaire de connexion)
-        JPanel panelCentre = new JPanel(new GridLayout(3, 1, 10, 10));
+        JPanel panel = new JPanel(new GridLayout(4, 1, 10, 10));
 
         champEmail = new JTextField();
         champMdp = new JPasswordField();
@@ -30,23 +25,19 @@ public class VueConnexion extends JFrame {
         boutonInscription = new JButton("Je n'ai pas de compte");
         boutonInscription.setActionCommand("INSCRIPTION_PAGE");
 
-        panelCentre.add(new JLabel("Email :"));
-        panelCentre.add(champEmail);
-        panelCentre.add(new JLabel("Mot de passe :"));
-        panelCentre.add(champMdp);
-        panelCentre.add(boutonConnexion);
-        panelCentre.add(boutonInscription);
-
-        // Panel pour le bouton admin en bas
-        JPanel panelBas = new JPanel(new FlowLayout(FlowLayout.CENTER));
         boutonConnexionAdmin = new JButton("Connexion Admin");
         boutonConnexionAdmin.setActionCommand("ADMIN_CONNEXION");
-        boutonConnexionAdmin.setFont(new Font("Arial", Font.PLAIN, 10));
-        panelBas.add(boutonConnexionAdmin);
+        boutonConnexionAdmin.setFont(new Font("Arial", Font.PLAIN, 10)); // Petit texte
 
-        // Ajout au conteneur principal
-        add(panelCentre, BorderLayout.CENTER);
-        add(panelBas, BorderLayout.SOUTH);
+        panel.add(new JLabel("Email :"));
+        panel.add(champEmail);
+        panel.add(new JLabel("Mot de passe :"));
+        panel.add(champMdp);
+        panel.add(boutonConnexion);
+        panel.add(boutonInscription);
+        panel.add(boutonConnexionAdmin);
+
+        add(panel);
     }
 
     public String getEmail() {
@@ -60,7 +51,7 @@ public class VueConnexion extends JFrame {
     public void ajouterEcouteur(ActionListener listener) {
         boutonConnexion.addActionListener(listener);
         boutonInscription.addActionListener(listener);
-        boutonConnexionAdmin.addActionListener(listener);
+        boutonConnexionAdmin.addActionListener(listener); // Ajout du listener admin
     }
 
     public void afficherMessage(String message) {

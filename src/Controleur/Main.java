@@ -10,13 +10,14 @@ public class Main {
     public static void main(String[] args) {
         // Déclaration et instanciation des objets des classes DaoFactory, ProduitDAOImpl, VueProduit,
         // ClientDAOImpl, VueClient, CommanderDAOImpl et VueCommander
-        DaoFactory dao = DaoFactory.getInstance("BookingApp", "root", "");
+        DaoFactory dao = DaoFactory.getInstance("BookingApp", "root", "root");
 
         HebergementDAOImpl daoHebergement = new HebergementDAOImpl(dao);
         VueHebergement vueHebergement = new VueHebergement();
         UserDAOImpl daoUser = new UserDAOImpl(dao);
         VueUser vueUser = new VueUser();
-
+        ReservationDAOImpl daoReservation = new ReservationDAOImpl(dao);
+        VueReservation vueReservation = new VueReservation();
 
         // Récupérer la liste des produits de la base de données avec l'objet prodao de la classe ProduitDAOImpl
         ArrayList<Hebergement> hebergements = daoHebergement.getAll();
@@ -30,36 +31,37 @@ public class Main {
         // Afficher la liste des clients récupérés avec l'objet vuecli de la classe VueClient
         vueUser.afficherListeClients(users);
 
+        // Récupérer la liste des commandes de la base de données avec l'objet comdao de la classe CommanderDAOImpl
+        ArrayList<Reservation> achats = daoReservation.getAll();
+
+        // Afficher la liste des commandes récupérées avec l'objet vuecom de la classe VueCommander
+        vueReservation.afficherListeCommandes(achats, dao);
 
 
         ///  inscription
         VueInscription vueInscription = new VueInscription();
         VueConnexion vueConnexion = new VueConnexion();
         VueAdmin vueAdmin = new VueAdmin();
+        //new Inscription(daoUser, vueInscription, vueConnexion, vueAdmin);
 
 
-        ///  accueil client
+        // a mettre depuis inscription après
         VueAccueil vueAccueil = new VueAccueil();
-
-        ReservationDAOImpl daoReservation = new ReservationDAOImpl(dao);
-        VueReservation vueReservation = new VueReservation(vueAccueil);
-
-        PaiementDAOImpl paiementDAO = new PaiementDAOImpl(dao);
-
-        AvisDAOImpl avisDAO = new AvisDAOImpl(dao);
-
-        //  reservation
-        Reserver reserver = new Reserver(vueAccueil, daoHebergement, daoReservation, paiementDAO, vueReservation, avisDAO);
-
-        Accueil accueil = new Accueil(vueAccueil, daoHebergement , vueConnexion, reserver, vueReservation, daoReservation, paiementDAO, avisDAO);
-
-        /// accueil admin
-        VueAccueilAdmin vueAccueilAdmin = new VueAccueilAdmin();
-        AccueilAdmin accueilAdmin = new AccueilAdmin(vueAccueilAdmin, daoHebergement);
-
-        new Inscription(daoUser, vueInscription, vueConnexion, vueAdmin, accueil, accueilAdmin);
+        //new Accueil(vueAccueil, daoHebergement ,vueConnexion);
 
 
+
+        /// ajout hebergement (via admin) - a deplacer et rajouter options
+        VueAccueilAdmin accueilAdmin = new VueAccueilAdmin();
+        new AccueilAdmin(accueilAdmin, daoHebergement);
+
+        // Gestion des options d'hébergement
+        OptionDAOImpl daoOption = new OptionDAOImpl(dao);
+        VueAjouterOption vueAjouterOption = new VueAjouterOption();
+        VueModifierSupprimerOption vueModifierSupprimerOption = new VueModifierSupprimerOption();
+        VueAssocierOptionsHebergement vueAssocierOptionsHebergement = new VueAssocierOptionsHebergement();
+
+        //new OptionControleur(daoOption, vueAjouterOption,vueModifierSupprimerOption, vueAssocierOptionsHebergement, dao);
 
         // Fermer ma connexion
         dao.disconnect();

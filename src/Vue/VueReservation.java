@@ -1,163 +1,55 @@
 package Vue;
 
-import Modele.Hebergement;
+// import des packages
 
-import javax.swing.*;
-import javax.swing.event.ChangeListener;
-import java.awt.*;
-import java.awt.event.ActionListener;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
+import Modele.*;
+import Dao.*;
 
-public class VueReservation extends JFrame {
+import java.util.ArrayList;
 
-    private JSpinner dateArriveeSpinner;
-    private JSpinner dateDepartSpinner;
-    private JSpinner spinnerNbAdultes;
-    private JSpinner spinnerNbEnfants;
-    private JTextField champPrixParNuit;
-    private JTextField champPrixTotal;
-    private JButton btnValider;
-    private JLabel labelMessage;
+public class VueReservation {
+    /**
+     * Méthode qui affiche une commande
+     *
+     * @param achat objet de la classe Commander et dao objet de la classe DaoFactory
+     */
+    public void afficherCommande(Reservation achat, DaoFactory dao) {
+        // Récupérer un clientID du getter getClientId de l'objet achat
+        int userID = achat.getUtilisateurId();
 
-    private VueAccueil vueAccueil;
+        // Instancier un objet de la classe ClientDAOImpl avec l'objet dao de DaoFactoru en paramètre
+        UserDAOImpl clidaoimpl = new UserDAOImpl(dao);
 
-    public VueReservation(VueAccueil vueAccueil) {
-        this.vueAccueil = vueAccueil;
+        // Instancier un objet de la classe Client avec le clientID en paramètre
+        User user = clidaoimpl.chercher(userID);
 
-        setTitle("Réservation");
-        setSize(500, 400);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setLocationRelativeTo(null);
-        setLayout(new BorderLayout());
+        // Récupérer un produitID du getter getProduitId de l'objet achat
+        int hebergementID = achat.getHebergementId();
 
-        JPanel panel = new JPanel(new GridLayout(8, 2, 10, 10));
+        ///  get d'autres trucs  ??
 
-        JLabel labelDateArrivee = new JLabel("Date d'arrivée :");
-        dateArriveeSpinner = createDateSpinner();
+        // Instancier un objet de la classe ProduitDAOImpl avec l'objet dao de DaoFactoru en paramètre
+        HebergementDAOImpl prodaoimpl = new HebergementDAOImpl(dao);
 
-        JLabel labelDateDepart = new JLabel("Date de départ :");
-        dateDepartSpinner = createDateSpinner();
+        // Instancier un objet de la classe Produit avec le produitID en paramètre
+        Hebergement product = prodaoimpl.chercher(hebergementID);
 
-        JLabel labelNbAdultes = new JLabel("Nombre d'adultes :");
-        spinnerNbAdultes = new JSpinner(new SpinnerNumberModel(1, 1, 10, 1));
-
-        JLabel labelNbEnfants = new JLabel("Nombre d'enfants :");
-        spinnerNbEnfants = new JSpinner(new SpinnerNumberModel(0, 0, 10, 1));
-
-        JLabel labelPrixParNuit = new JLabel("Prix par nuit (€) :");
-        champPrixParNuit = new JTextField();
-        champPrixParNuit.setEditable(false);
-
-        JLabel labelPrixTotal = new JLabel("Prix total (€) :");
-        champPrixTotal = new JTextField();
-        champPrixTotal.setEditable(false);
-
-        labelMessage = new JLabel("");
-        labelMessage.setHorizontalAlignment(SwingConstants.CENTER);
-        labelMessage.setForeground(Color.RED);
-
-        btnValider = new JButton("Valider la réservation");
-        btnValider.setActionCommand("VALIDER_RESERVATION");
-
-        // Ajout des composants au panel
-        panel.add(labelDateArrivee); panel.add(dateArriveeSpinner);
-        panel.add(labelDateDepart); panel.add(dateDepartSpinner);
-        panel.add(labelNbAdultes); panel.add(spinnerNbAdultes);
-        panel.add(labelNbEnfants); panel.add(spinnerNbEnfants);
-        panel.add(labelPrixParNuit); panel.add(champPrixParNuit);
-        panel.add(labelPrixTotal); panel.add(champPrixTotal);
-        panel.add(labelMessage); panel.add(btnValider);
-
-        add(panel, BorderLayout.CENTER);
-
-        // Listeners automatiques
-        ChangeListener recalculListener = e -> calculerPrixTotal();
-        dateArriveeSpinner.addChangeListener(recalculListener);
-        dateDepartSpinner.addChangeListener(recalculListener);
-        spinnerNbAdultes.addChangeListener(recalculListener);
-        spinnerNbEnfants.addChangeListener(recalculListener);
-
-        // Initialiser les prix à l'ouverture
-        SwingUtilities.invokeLater(this::calculerPrixTotal);
+        // Afficher les informations du client et du produit pour l'objet achat en paramètre
+        System.out.println("Id Client : " + userID + " Nom : " + user.getNom() + " Mail : "+ user.getEmail()
+                           + " commande Id Produit : " + hebergementID + " Nom : " + product.getNom()
+                           + " prix = " + product.getPrixParNuit());
     }
 
-    private JSpinner createDateSpinner() {
-        Calendar cal = Calendar.getInstance();
-        SpinnerDateModel model = new SpinnerDateModel();
-        model.setValue(cal.getTime());
-        JSpinner spinner = new JSpinner(model);
-        spinner.setEditor(new JSpinner.DateEditor(spinner, "dd-MM-yyyy"));
-        return spinner;
-    }
+    /**
+     * Méthode qui affiche la liste des commandes
+     * @param achats liste des produits et dao objet de la classe DaoFactory
+     */
 
-    private void calculerPrixTotal() {
-        try {
-            Hebergement h = vueAccueil.getHebergementSelectionne();
-            if (h == null) {
-                champPrixParNuit.setText("");
-                champPrixTotal.setText("");
-                labelMessage.setText("Aucun hébergement sélectionné.");
-                return;
-            }
-
-            // Afficher le prix par nuit avec un point, pour que parseDouble fonctionne
-            champPrixParNuit.setText(String.format(Locale.US, "%.2f", h.getPrixParNuit()));
-
-            Date dateArrivee = (Date) dateArriveeSpinner.getValue();
-            Date dateDepart = (Date) dateDepartSpinner.getValue();
-            int nbAdultes = (int) spinnerNbAdultes.getValue();
-            int nbEnfants = (int) spinnerNbEnfants.getValue();
-
-            if (dateArrivee != null && dateDepart != null && !dateArrivee.after(dateDepart)) {
-                long difference = dateDepart.getTime() - dateArrivee.getTime();
-                long nombreNuits = Math.max(1, difference / (1000 * 60 * 60 * 24)); // minimum 1 nuit
-
-                double prixTotal = h.getPrixParNuit() * nombreNuits * nbAdultes
-                        + (h.getPrixParNuit() * 0.5 * nbEnfants * nombreNuits);
-
-                champPrixTotal.setText(String.format(Locale.US, "%.2f", prixTotal));
-                labelMessage.setText("");
-            } else {
-                champPrixTotal.setText("");
-                labelMessage.setText("Vérifiez les dates.");
-            }
-
-        } catch (Exception e) {
-            champPrixTotal.setText("");
-            labelMessage.setText("Erreur lors du calcul.");
+    public void afficherListeCommandes(ArrayList<Reservation> achats, DaoFactory dao) {
+        // Afficher la liste des produits
+        for (Reservation achat : achats) {
+            //afficherCommande(achat);
+            afficherCommande(achat, dao);
         }
-    }
-
-    // Getters
-    public Date getDateArrivee() {
-        return (Date) dateArriveeSpinner.getValue();
-    }
-
-    public Date getDateDepart() {
-        return (Date) dateDepartSpinner.getValue();
-    }
-
-    public int getNbAdultes() {
-        return (int) spinnerNbAdultes.getValue();
-    }
-
-    public int getNbEnfants() {
-        return (int) spinnerNbEnfants.getValue();
-    }
-
-    public double getPrixTotal() {
-        try {
-            return Double.parseDouble(champPrixTotal.getText().replace(",", "."));
-        } catch (NumberFormatException e) {
-            System.err.println("Erreur de conversion prix total : " + champPrixTotal.getText());
-            return 0.0;
-        }
-    }
-
-    public void ajouterEcouteur(ActionListener listener) {
-        btnValider.addActionListener(listener);
     }
 }

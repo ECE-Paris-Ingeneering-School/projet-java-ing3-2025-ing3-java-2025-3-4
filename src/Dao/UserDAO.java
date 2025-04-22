@@ -26,7 +26,7 @@ public interface UserDAO {
      * @param : id
      * @return : objet de classe Client cherché et retourné
      */
-    public User chercher(String email, String mdp, String typeutilisateur);
+    public User chercher(int id);
 
     /**
      * Permet de modifier les données du nom de l'objet de la classe Client en paramètre

@@ -15,8 +15,10 @@ public class Reservation {
     private Date dateCreation;
 
     // Constructeur complet
-    public Reservation(int reservationId, int utilisateurId, int hebergementId, Date dateArrivee, Date dateDepart,
-                       int adultes, int enfants, double prixTotal, String statut, Date dateCreation) {
+    public Reservation(int reservationId, int utilisateurId, int hebergementId,
+                       Date dateArrivee, Date dateDepart, int adultes,
+                       int enfants, double prixTotal, String statut,
+                       Date dateCreation) {
         this.reservationId = reservationId;
         this.utilisateurId = utilisateurId;
         this.hebergementId = hebergementId;
@@ -29,41 +31,29 @@ public class Reservation {
         this.dateCreation = dateCreation;
     }
 
-
-    // Constructeur sans ID (à l'insertion)
-    public Reservation(int utilisateurId, int hebergementId, Date dateArrivee, Date dateDepart,
-                       int adultes, int enfants, double prixTotal, String statut, Date dateCreation) {
-        this(-1, utilisateurId, hebergementId, dateArrivee, dateDepart, adultes, enfants, prixTotal, statut, dateCreation);
+    // Constructeur simplifié pour création nouvelle réservation
+    public Reservation(int utilisateurId, int hebergementId,
+                       Date dateArrivee, Date dateDepart, int adultes,
+                       int enfants, double prixTotal) {
+        this(0, utilisateurId, hebergementId, dateArrivee, dateDepart,
+                adultes, enfants, prixTotal, "en_attente", null);
     }
 
-    // Getters & Setters
+    // Getters
     public int getReservationId() { return reservationId; }
-    public void setReservationId(int reservationId) { this.reservationId = reservationId; }
-
     public int getUtilisateurId() { return utilisateurId; }
-    public void setUtilisateurId(int utilisateurId) { this.utilisateurId = utilisateurId; }
-
     public int getHebergementId() { return hebergementId; }
-    public void setHebergementId(int hebergementId) { this.hebergementId = hebergementId; }
-
     public Date getDateArrivee() { return dateArrivee; }
-    public void setDateArrivee(Date dateArrivee) { this.dateArrivee = dateArrivee; }
-
     public Date getDateDepart() { return dateDepart; }
-    public void setDateDepart(Date dateDepart) { this.dateDepart = dateDepart; }
-
     public int getAdultes() { return adultes; }
-    public void setAdultes(int adultes) { this.adultes = adultes; }
-
     public int getEnfants() { return enfants; }
-    public void setEnfants(int enfants) { this.enfants = enfants; }
-
     public double getPrixTotal() { return prixTotal; }
-    public void setPrixTotal(double prixTotal) { this.prixTotal = prixTotal; }
-
     public String getStatut() { return statut; }
-    public void setStatut(String statut) { this.statut = statut; }
-
     public Date getDateCreation() { return dateCreation; }
-    public void setDateCreation(Date dateCreation) { this.dateCreation = dateCreation; }
+
+    // Setters
+    public void setReservationId(int reservationId) { this.reservationId = reservationId; }
+    public void setStatut(String statut) { this.statut = statut; }
+    public void setPrixTotal(double prixTotal) { this.prixTotal = prixTotal; }
+    // Ajoutez d'autres setters si nécessaire
 }

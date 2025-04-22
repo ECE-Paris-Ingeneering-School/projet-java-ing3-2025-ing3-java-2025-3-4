@@ -38,7 +38,7 @@ public class DaoFactory {
             System.out.println("Erreur de connexion à la base de données");
         }
 
-        url = "jdbc:mysql://localhost:3306/" + database;
+        url = "jdbc:mysql://localhost:8889/" + database;
 
         // Instancier une instance l'objet de DaoFactory
         DaoFactory instance = new DaoFactory(url, username,password );
