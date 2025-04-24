@@ -21,7 +21,7 @@ public class VueAssocierOptionsHebergement extends JFrame {
         boutonAssocier = new JButton("Associer");
         boutonRetirer = new JButton("Retirer");
 
-        boutonAssocier.setActionCommand("ASSOCIER_OPTION");
+        boutonAssocier.setActionCommand("VALIDER_ASSOCIATION");
         boutonRetirer.setActionCommand("RETIRER_OPTION");
 
         JPanel panel = new JPanel(new GridLayout(3, 2));
@@ -50,5 +50,9 @@ public class VueAssocierOptionsHebergement extends JFrame {
 
     public void afficherMessage(String message) {
         JOptionPane.showMessageDialog(this, message);
+    }
+    public void resetChamps() {
+        champIdHebergement.setText("");
+        champIdOption.setText("");
     }
 }

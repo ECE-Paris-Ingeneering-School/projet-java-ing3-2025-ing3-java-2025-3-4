@@ -30,6 +30,7 @@ public class Hebergement {
     public double getPrixParNuit() { return prixParNuit; }
     public String getCategorie() { return categorie; }
 
+    public void setId(int id) { this.id = id; }
     public void setNom(String nom) { this.nom = nom; }
     public void setDescription(String description) { this.description = description; }
     public void setAdresse(String adresse) { this.adresse = adresse; }

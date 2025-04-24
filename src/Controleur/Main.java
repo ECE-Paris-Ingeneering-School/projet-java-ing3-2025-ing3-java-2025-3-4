@@ -37,7 +37,6 @@ public class Main {
         // Afficher la liste des commandes récupérées avec l'objet vuecom de la classe VueCommander
         vueReservation.afficherListeCommandes(achats, dao);
 
-
         ///  inscription
         VueInscription vueInscription = new VueInscription();
         VueConnexion vueConnexion = new VueConnexion();
@@ -50,18 +49,24 @@ public class Main {
         //new Accueil(vueAccueil, daoHebergement ,vueConnexion);
 
 
-
-        /// ajout hebergement (via admin) - a deplacer et rajouter options
+        /// centralisation via AccueilAdmin
         VueAccueilAdmin accueilAdmin = new VueAccueilAdmin();
-        new AccueilAdmin(accueilAdmin, daoHebergement);
-
-        // Gestion des options d'hébergement
         OptionDAOImpl daoOption = new OptionDAOImpl(dao);
+        HebergementDAOImpl daoHebergementAdmin = new HebergementDAOImpl(dao);
         VueAjouterOption vueAjouterOption = new VueAjouterOption();
         VueModifierSupprimerOption vueModifierSupprimerOption = new VueModifierSupprimerOption();
         VueAssocierOptionsHebergement vueAssocierOptionsHebergement = new VueAssocierOptionsHebergement();
+        VueAjoutHebergement vueAjoutHebergement = new VueAjoutHebergement();
 
-        //new OptionControleur(daoOption, vueAjouterOption,vueModifierSupprimerOption, vueAssocierOptionsHebergement, dao);
+        AccueilAdmin controleurAdmin = new AccueilAdmin(
+                accueilAdmin,
+                vueAjoutHebergement,
+                vueAjouterOption,
+                vueModifierSupprimerOption,
+                vueAssocierOptionsHebergement,
+                daoOption,
+                daoHebergementAdmin
+        );
 
         // Fermer ma connexion
         dao.disconnect();

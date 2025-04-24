@@ -36,4 +36,7 @@ public class VueAjouterOption extends JFrame {
     public void afficherMessage(String message) {
         JOptionPane.showMessageDialog(this, message);
     }
+    public void resetChamps() {
+        champNom.setText("");
+    }
 }

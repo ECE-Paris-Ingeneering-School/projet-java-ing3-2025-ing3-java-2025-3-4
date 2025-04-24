@@ -24,12 +24,12 @@ public class HebergementDAOImpl implements HebergementDAO {
                 Hebergement h = new Hebergement(
                         resultats.getInt("hebergement_id"),
                         resultats.getString("nom"),
-                        resultats.getString("description"),
                         resultats.getString("adresse"),
                         resultats.getString("ville"),
                         resultats.getString("pays"),
+                        resultats.getString("categorie"),
                         resultats.getDouble("prix_par_nuit"),
-                        resultats.getString("categorie")
+                        resultats.getString("description")
                 );
                 listeHebergements.add(h);
             }
@@ -43,19 +43,18 @@ public class HebergementDAOImpl implements HebergementDAO {
 
     @Override
     public void ajouter(Hebergement h) {
-        try {
-            Connection connexion = daoFactory.getConnection();
+        try (Connection connexion = daoFactory.getConnection();
+             PreparedStatement ps = connexion.prepareStatement(
+                     "INSERT INTO Hebergements (nom, adresse, ville, pays, categorie, prix_par_nuit, description,) VALUES (?, ?, ?, ?, ?, ?, ?)"
+             )) {
 
-            PreparedStatement ps = connexion.prepareStatement(
-                    "INSERT INTO Hebergements (nom, description, adresse, ville, pays, categorie, prix_par_nuit) VALUES (?, ?, ?, ?, ?, ?, ?)"
-            );
             ps.setString(1, h.getNom());
-            ps.setString(2, h.getDescription());
-            ps.setString(3, h.getAdresse());
-            ps.setString(4, h.getVille());
-            ps.setString(5, h.getPays());
-            ps.setString(6, h.getCategorie());
-            ps.setDouble(7, h.getPrixParNuit());
+            ps.setString(2, h.getAdresse());
+            ps.setString(3, h.getVille());
+            ps.setString(4, h.getPays());
+            ps.setString(5, h.getCategorie());
+            ps.setDouble(6, h.getPrixParNuit());
+            ps.setString(7, h.getDescription());
 
             ps.executeUpdate();
         } catch (SQLException e) {
@@ -63,6 +62,7 @@ public class HebergementDAOImpl implements HebergementDAO {
             System.out.println("Ajout de l'hébergement impossible");
         }
     }
+
 
     @Override
     public Hebergement chercher(int id) {

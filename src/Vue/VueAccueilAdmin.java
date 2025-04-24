@@ -6,96 +6,54 @@ import java.awt.event.ActionListener;
 
 public class VueAccueilAdmin extends JFrame {
 
-    private JTextField champNom;
-    private JTextField champAdresse;
-    private JTextField champVille;
-    private JTextField champPays;
-    private JComboBox<String> comboCategorie; // Remplacé ici
-    private JTextField champPrix;
-    private JTextArea champDescription;
-    private JButton boutonAjouter;
+    private JButton boutonAjouterHebergement;
+    private JButton boutonAjouterOption;
+    private JButton boutonAssocierOption;
+    private JButton boutonModifierSupprimerOption;
     private JButton boutonDeconnexion;
 
     public VueAccueilAdmin() {
-        setTitle("Accueil Admin - Ajouter un Hébergement");
-        setSize(600, 500);
+        setTitle("Accueil Admin - Gestion");
+        setSize(400, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        JPanel panelFormulaire = new JPanel(new GridLayout(8, 2, 10, 10));
-        panelFormulaire.setBorder(BorderFactory.createTitledBorder("Formulaire d'ajout"));
+        JPanel panelBoutons = new JPanel(new GridLayout(5, 1, 10, 10));
+        panelBoutons.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        champNom = new JTextField();
-        champAdresse = new JTextField();
-        champVille = new JTextField();
-        champPays = new JTextField();
+        boutonAjouterHebergement = new JButton("Créer un Hébergement");
+        boutonAjouterHebergement.setActionCommand("CREER_HEBERGEMENT");
 
-        // Menu déroulant pour la catégorie
-        String[] categories = {"Appartement", "Hôtel", "Maison", "Camping", "Auberge"};
-        comboCategorie = new JComboBox<>(categories);
+        boutonAjouterOption = new JButton("Créer une Option");
+        boutonAjouterOption.setActionCommand("CREER_OPTION");
 
-        champPrix = new JTextField();
-        champDescription = new JTextArea(3, 20);
-        champDescription.setLineWrap(true);
-        champDescription.setWrapStyleWord(true);
-        JScrollPane scrollDescription = new JScrollPane(champDescription);
+        boutonAssocierOption = new JButton("Associer une Option");
+        boutonAssocierOption.setActionCommand("ASSOCIER_OPTION");
 
-        boutonAjouter = new JButton("Ajouter");
-        boutonAjouter.setActionCommand("AJOUTER_HEBERGEMENT");
+        boutonModifierSupprimerOption = new JButton("Modifier/Supprimer une Option");
+        boutonModifierSupprimerOption.setActionCommand("MODIFIER_SUPPRIMER_OPTION");
 
         boutonDeconnexion = new JButton("Déconnexion");
         boutonDeconnexion.setActionCommand("DECONNEXION");
 
-        panelFormulaire.add(new JLabel("Nom :"));
-        panelFormulaire.add(champNom);
-        panelFormulaire.add(new JLabel("Adresse :"));
-        panelFormulaire.add(champAdresse);
-        panelFormulaire.add(new JLabel("Ville :"));
-        panelFormulaire.add(champVille);
-        panelFormulaire.add(new JLabel("Pays :"));
-        panelFormulaire.add(champPays);
-        panelFormulaire.add(new JLabel("Catégorie :"));
-        panelFormulaire.add(comboCategorie);
-        panelFormulaire.add(new JLabel("Prix par nuit (€) :"));
-        panelFormulaire.add(champPrix);
-        panelFormulaire.add(new JLabel("Description :"));
-        panelFormulaire.add(scrollDescription);
-        panelFormulaire.add(new JLabel(""));
-        panelFormulaire.add(boutonAjouter);
+        panelBoutons.add(boutonAjouterHebergement);
+        panelBoutons.add(boutonAjouterOption);
+        panelBoutons.add(boutonAssocierOption);
+        panelBoutons.add(boutonModifierSupprimerOption);
+        panelBoutons.add(boutonDeconnexion);
 
-        JPanel panelBas = new JPanel();
-        panelBas.add(boutonDeconnexion);
-
-        setLayout(new BorderLayout());
-        add(panelFormulaire, BorderLayout.CENTER);
-        add(panelBas, BorderLayout.SOUTH);
+        add(panelBoutons);
     }
 
-    // Getters
-    public String getNom() { return champNom.getText(); }
-    public String getAdresse() { return champAdresse.getText(); }
-    public String getVille() { return champVille.getText(); }
-    public String getPays() { return champPays.getText(); }
-    public String getCategorie() { return (String) comboCategorie.getSelectedItem(); } // MAJ ICI
-    public String getPrix() { return champPrix.getText(); }
-    public String getDescription() { return champDescription.getText(); }
-
     public void ajouterEcouteur(ActionListener listener) {
-        boutonAjouter.addActionListener(listener);
+        boutonAjouterHebergement.addActionListener(listener);
+        boutonAjouterOption.addActionListener(listener);
+        boutonAssocierOption.addActionListener(listener);
+        boutonModifierSupprimerOption.addActionListener(listener);
         boutonDeconnexion.addActionListener(listener);
     }
 
     public void afficherMessage(String message) {
         JOptionPane.showMessageDialog(this, message);
-    }
-
-    public void resetChamps() {
-        champNom.setText("");
-        champAdresse.setText("");
-        champVille.setText("");
-        champPays.setText("");
-        comboCategorie.setSelectedIndex(0); // MAJ ICI
-        champPrix.setText("");
-        champDescription.setText("");
     }
 }

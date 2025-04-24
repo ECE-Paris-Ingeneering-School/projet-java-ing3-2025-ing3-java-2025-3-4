@@ -51,4 +51,8 @@ public class VueModifierSupprimerOption extends JFrame {
     public void afficherMessage(String message) {
         JOptionPane.showMessageDialog(this, message);
     }
+    public void resetChamps() {
+        champId.setText("");
+        champNom.setText("");
+    }
 }
