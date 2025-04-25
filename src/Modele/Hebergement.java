@@ -47,4 +47,8 @@ public class Hebergement {
     public void setNoteMoyenne(double noteMoyenne) { this.noteMoyenne = noteMoyenne; }
     public void setEtoiles(Integer etoiles) { this.etoiles = etoiles; }
     public void setPhoto(String photo) { this.photo = photo; }
+
+    public String toString(){
+        return nom + "(" + ville +")";
+    }
 }

@@ -60,6 +60,8 @@ public class Main {
         VueModifierSupprimerOption vueModifierSupprimerOption = new VueModifierSupprimerOption();
         VueAssocierOptionsHebergement vueAssocierOptionsHebergement = new VueAssocierOptionsHebergement();
         VueAjoutHebergement vueAjoutHebergement = new VueAjoutHebergement();
+        VueAjouterReduction vueAjouterReduction = new VueAjouterReduction();
+        ReductionDAOImpl reductionDAO = new ReductionDAOImpl(dao);
 
         AccueilAdmin controleurAdmin = new AccueilAdmin(
                 vueAccueilAdmin,
@@ -67,8 +69,10 @@ public class Main {
                 vueAjouterOption,
                 vueModifierSupprimerOption,
                 vueAssocierOptionsHebergement,
+                vueAjouterReduction,
                 daoOption,
-                daoHebergement
+                daoHebergement,
+                reductionDAO
         );
 
         //AccueilAdmin accueilAdmin = new AccueilAdmin(vueAccueilAdmin, daoHebergement);

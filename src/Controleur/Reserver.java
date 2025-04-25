@@ -109,9 +109,4 @@ public class Reserver implements ActionListener {
         paiementDAO.ajouter(paiement);
     }
 
-
-    private void lancerVueMesReservations() {
-        VueMesReservations vueMesReservations = new VueMesReservations(reservationDAO, hebergementDAO, avisDAO);
-        vueMesReservations.setVisible(true);
-    }
 }
