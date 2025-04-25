@@ -2,6 +2,8 @@ package Vue;
 
 import Dao.HebergementDAOImpl;
 import Modele.Hebergement;
+import Modele.Reduction;
+import Controleur.Inscription;  // Assure-toi d'importer la classe Inscription si nécessaire
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -9,6 +11,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
+import java.util.List;
 
 public class VueAccueil extends JFrame {
     private JTable tableHebergements;
@@ -79,17 +82,17 @@ public class VueAccueil extends JFrame {
 
         // --- Tableau des hébergements ---
         tableModel = new DefaultTableModel(
-                new Object[]{"Photo", "Nom", "Ville", "Pays", "Catégorie", "Description", "Prix (€)", "Note Moyenne", "Étoiles", "Réserver"}, 0) {
+                new Object[]{"Photo", "Nom", "Ville", "Pays", "Catégorie", "Description", "Prix (€)", "Note Moyenne", "Étoiles", "Réduction", "Réserver"}, 0) {
 
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 9;
+                return column == 10;  // "Réserver" est cliquable
             }
 
             @Override
             public Class<?> getColumnClass(int columnIndex) {
                 if (columnIndex == 0) return ImageIcon.class;
-                if (columnIndex == 9) return JButton.class;
+                if (columnIndex == 9 || columnIndex == 10) return JButton.class;
                 return String.class;
             }
         };
@@ -115,6 +118,15 @@ public class VueAccueil extends JFrame {
         this.hebergementsAffiches = hebergements;
         tableModel.setRowCount(0);
 
+        // Vérification du type d'utilisateur connecté
+        boolean utilisateurAncien = Inscription.getUtilisateurConnecte().getTypeUtilisateur().equals("ancien");
+
+        // Récupérer toutes les réductions uniquement si l'utilisateur est "ancien"
+        List<Reduction> reductions = new ArrayList<>();
+        if (utilisateurAncien) {
+            reductions = hebergementDAO.getAllReductions();
+        }
+
         for (Hebergement h : hebergements) {
             double moyenne = hebergementDAO.calculerMoyenneNotes(h.getId());
             int etoiles = (int) Math.round(moyenne);
@@ -136,6 +148,15 @@ public class VueAccueil extends JFrame {
                 System.out.println("Erreur de chargement de l'image pour : " + h.getNom());
             }
 
+            // Vérifier s'il y a une réduction pour cet hébergement
+            String reductionStr = "Pas de réduction";
+            for (Reduction reduction : reductions) {
+                if (reduction.getHebergementId() == h.getId()) {
+                    reductionStr = reduction.getPourcentage() + "% de réduction";
+                    break;
+                }
+            }
+
             tableModel.addRow(new Object[]{
                     image,
                     h.getNom(),
@@ -146,6 +167,7 @@ public class VueAccueil extends JFrame {
                     h.getPrixParNuit() + " €",
                     noteStr,
                     genererEtoiles(h.getEtoiles()),
+                    reductionStr,  // Affichage de la réduction
                     "Réserver"
             });
         }

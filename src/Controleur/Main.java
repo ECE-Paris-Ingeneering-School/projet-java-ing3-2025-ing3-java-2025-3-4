@@ -52,8 +52,8 @@ public class Main {
 
         Accueil accueil = new Accueil(vueAccueil, daoHebergement , vueConnexion, reserver, vueReservation, daoReservation, paiementDAO, avisDAO, daoUser);
 
-        /// accueil admin
 
+        /// accueil admin
         VueAccueilAdmin vueAccueilAdmin = new VueAccueilAdmin();
         OptionDAOImpl daoOption = new OptionDAOImpl(dao);
         VueAjouterOption vueAjouterOption = new VueAjouterOption();
@@ -75,7 +75,6 @@ public class Main {
                 reductionDAO
         );
 
-        //AccueilAdmin accueilAdmin = new AccueilAdmin(vueAccueilAdmin, daoHebergement);
 
         new Inscription(daoUser, vueInscription, vueConnexion, vueAdmin, accueil, controleurAdmin);
 

@@ -27,6 +27,11 @@ public class Reduction {
         this.dateFin = dateFin;
     }
 
+    public Reduction(int hebergementId, int pourcentage) {
+        this.hebergementId = hebergementId;
+        this.pourcentage = pourcentage;
+    }
+
     // Getters et Setters
 
     public int getId() {

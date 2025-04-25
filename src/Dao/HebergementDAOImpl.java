@@ -2,8 +2,11 @@ package Dao;
 
 import Modele.Avis;
 import Modele.Hebergement;
+import Modele.Reduction;
+
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.List;
 
 public class HebergementDAOImpl implements HebergementDAO {
     private DaoFactory daoFactory;
@@ -196,5 +199,27 @@ public class HebergementDAOImpl implements HebergementDAO {
             e.printStackTrace();
         }
     }
+
+    public List<Reduction> getAllReductions() {
+        List<Reduction> reductions = new ArrayList<>();
+
+        String sql = "SELECT hebergement_id, pourcentage FROM reductions";
+        try (Connection conn = daoFactory.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+
+            while (rs.next()) {
+                int hebergementId = rs.getInt("hebergement_id");
+                int pourcentage = rs.getInt("pourcentage");
+                reductions.add(new Reduction(hebergementId, pourcentage));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return reductions;
+    }
+
+
 
 }
