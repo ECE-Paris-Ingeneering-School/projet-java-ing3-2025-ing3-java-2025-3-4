@@ -1,6 +1,7 @@
 package Vue;
 
 import Dao.HebergementDAOImpl;
+import Modele.Chambre;
 import Modele.Hebergement;
 import Modele.Reduction;
 import Controleur.Inscription;  // Assure-toi d'importer la classe Inscription si nécessaire
@@ -118,63 +119,79 @@ public class VueAccueil extends JFrame {
         this.hebergementsAffiches = hebergements;
         tableModel.setRowCount(0);
 
-        // Vérification du type d'utilisateur connecté
-        boolean utilisateurAncien = Inscription.getUtilisateurConnecte().getTypeUtilisateur().equals("ancien");
-
-        // Récupérer toutes les réductions uniquement si l'utilisateur est "ancien"
-        List<Reduction> reductions = new ArrayList<>();
-        if (utilisateurAncien) {
-            reductions = hebergementDAO.getAllReductions();
-        }
+        int nbPersonnes = (int) spinnerPersonnes.getValue();
 
         for (Hebergement h : hebergements) {
-            double moyenne = hebergementDAO.calculerMoyenneNotes(h.getId());
-            int etoiles = (int) Math.round(moyenne);
+            boolean peutAccueillir = false;
 
-            h.setNoteMoyenne(moyenne);
-            h.setEtoiles(etoiles);
-            hebergementDAO.mettreAJourNoteEtEtoiles(h.getId(), moyenne, etoiles);
+            if (h.getCategorie().equalsIgnoreCase("hotel")) {
+                List<Chambre> chambresDisponibles = hebergementDAO.getChambresDisponibles(h.getId());
+                int capaciteTotale = 0;
 
-            String noteStr = (moyenne == 0) ? "Aucune note" : String.format("%.1f / 5", moyenne);
-
-            ImageIcon image = null;
-            try {
-                if (h.getPhoto() != null && !h.getPhoto().isEmpty()) {
-                    ImageIcon icon = new ImageIcon(h.getPhoto());
-                    Image scaled = icon.getImage().getScaledInstance(100, 75, Image.SCALE_SMOOTH);
-                    image = new ImageIcon(scaled);
+                for (Chambre chambre : chambresDisponibles) {
+                    capaciteTotale += chambre.getPlaceMax();
                 }
-            } catch (Exception e) {
-                System.out.println("Erreur de chargement de l'image pour : " + h.getNom());
-            }
 
-            // Vérifier s'il y a une réduction pour cet hébergement
-            String reductionStr = "Pas de réduction";
-            for (Reduction reduction : reductions) {
-                if (reduction.getHebergementId() == h.getId()) {
-                    reductionStr = reduction.getPourcentage() + "% - " + reduction.getDescription();
-                    break;
+                if (capaciteTotale >= nbPersonnes) {
+                    peutAccueillir = true;
+                }
+            } else {
+                if (h.getPlace() >= nbPersonnes) {
+                    peutAccueillir = true;
                 }
             }
 
-            tableModel.addRow(new Object[]{
-                    image,
-                    h.getNom(),
-                    h.getVille(),
-                    h.getPays(),
-                    h.getCategorie(),
-                    h.getDescription(),
-                    h.getPrixParNuit() + " €",
-                    noteStr,
-                    genererEtoiles(h.getEtoiles()),
-                    reductionStr,
-                    "Réserver"
-            });
+            if (peutAccueillir) {
+                double moyenne = hebergementDAO.calculerMoyenneNotes(h.getId());
+                int etoiles = (int) Math.round(moyenne);
+
+                h.setNoteMoyenne(moyenne);
+                h.setEtoiles(etoiles);
+                hebergementDAO.mettreAJourNoteEtEtoiles(h.getId(), moyenne, etoiles);
+
+                String noteStr = (moyenne == 0) ? "Aucune note" : String.format("%.1f / 5", moyenne);
+
+                ImageIcon image = null;
+                try {
+                    if (h.getPhoto() != null && !h.getPhoto().isEmpty()) {
+                        ImageIcon icon = new ImageIcon(h.getPhoto());
+                        Image scaled = icon.getImage().getScaledInstance(100, 75, Image.SCALE_SMOOTH);
+                        image = new ImageIcon(scaled);
+                    }
+                } catch (Exception e) {
+                    System.out.println("Erreur de chargement de l'image pour : " + h.getNom());
+                }
+
+                // Récupération de la réduction si utilisateur ancien
+                String reductionStr = "-";
+                if (Inscription.getUtilisateurConnecte() != null &&
+                        "ancien".equals(Inscription.getUtilisateurConnecte().getTypeUtilisateur())) {
+                    Reduction reduction = hebergementDAO.getReductionParHebergement(h.getId());
+                    if (reduction != null) {
+                        reductionStr = reduction.getPourcentage() + "% de réduction";
+                    }
+                }
+
+                tableModel.addRow(new Object[]{
+                        image,
+                        h.getNom(),
+                        h.getVille(),
+                        h.getPays(),
+                        h.getCategorie(),
+                        h.getDescription(),
+                        h.getPrixParNuit() + " €",
+                        noteStr,
+                        genererEtoiles(h.getEtoiles()),
+                        reductionStr,
+                        "Réserver"
+                });
+            }
         }
 
         tableHebergements.getColumn("Réserver").setCellRenderer(new ButtonRenderer());
         tableHebergements.getColumn("Réserver").setCellEditor(new ButtonEditor(new JCheckBox()));
     }
+
 
     private String genererEtoiles(int etoilesPleines) {
         StringBuilder etoiles = new StringBuilder();
