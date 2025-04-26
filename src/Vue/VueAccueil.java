@@ -1,8 +1,10 @@
 package Vue;
 
 import Dao.HebergementDAOImpl;
+import Dao.OptionDAOImpl;
 import Modele.Chambre;
 import Modele.Hebergement;
+import Modele.Option;
 import Modele.Reduction;
 import Controleur.Inscription;  // Assure-toi d'importer la classe Inscription si nécessaire
 
@@ -28,15 +30,21 @@ public class VueAccueil extends JFrame {
     private JButton boutonMesReservations;
     private JButton boutonDeconnexion;
 
+    private JPanel panelOptions; // --> Nouveau : pour afficher les cases à cocher des options
+    private List<JCheckBox> checkBoxesOptions; // --> Nouveau : stocke toutes les cases à cocher
+
     private ActionListener actionListener;
 
     private ArrayList<Hebergement> hebergementsAffiches;
     private Hebergement hebergementSelectionne;
 
     private HebergementDAOImpl hebergementDAO;
+    private OptionDAOImpl optionDAO; // --> Nouveau : pour récupérer les options
 
-    public VueAccueil(HebergementDAOImpl hebergementDAO) {
+    public VueAccueil(HebergementDAOImpl hebergementDAO, OptionDAOImpl optionDAO) {
         this.hebergementDAO = hebergementDAO;
+        this.optionDAO = optionDAO;
+        this.checkBoxesOptions = new ArrayList<>();
         setTitle("Accueil - Rechercher un Hébergement");
         setSize(1300, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -81,6 +89,15 @@ public class VueAccueil extends JFrame {
         panelRecherche.add(champDateFin);
         panelRecherche.add(boutonRecherche);
 
+        // --- Zone de filtres par options ---
+        panelOptions = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        panelOptions.setBorder(BorderFactory.createTitledBorder("Filtrer par options"));
+
+        chargerOptionsDisponibles();
+
+        JScrollPane scrollPaneOptions = new JScrollPane(panelOptions);
+        scrollPaneOptions.setPreferredSize(new Dimension(1400, 80));
+
         // --- Tableau des hébergements ---
         tableModel = new DefaultTableModel(
                 new Object[]{"Photo", "Nom", "Ville", "Pays", "Catégorie", "Description", "Prix (€)", "Note Moyenne", "Étoiles", "Réduction", "Réserver"}, 0) {
@@ -100,7 +117,7 @@ public class VueAccueil extends JFrame {
 
         tableHebergements = new JTable(tableModel);
         tableHebergements.setRowHeight(80);
-        JScrollPane scrollPane = new JScrollPane(tableHebergements);
+        JScrollPane scrollPaneTable = new JScrollPane(tableHebergements);
 
         tableHebergements.getColumn("Réserver").setCellRenderer(new ButtonRenderer());
         tableHebergements.getColumn("Réserver").setCellEditor(new ButtonEditor(new JCheckBox()));
@@ -110,9 +127,33 @@ public class VueAccueil extends JFrame {
         panelHaut.add(barreNavigation, BorderLayout.NORTH);
         panelHaut.add(panelRecherche, BorderLayout.SOUTH);
 
+        JPanel panelPrincipal = new JPanel(new BorderLayout());
+        panelPrincipal.add(scrollPaneOptions, BorderLayout.NORTH);
+        panelPrincipal.add(scrollPaneTable, BorderLayout.CENTER);
+
         setLayout(new BorderLayout());
         add(panelHaut, BorderLayout.NORTH);
-        add(scrollPane, BorderLayout.CENTER);
+        add(panelPrincipal, BorderLayout.CENTER);
+    }
+
+    private void chargerOptionsDisponibles() {
+        List<Option> options = optionDAO.getAll(); // --> récupère toutes les options existantes
+        for (Option opt : options) {
+            JCheckBox checkBox = new JCheckBox(opt.getNomOption());
+            checkBox.putClientProperty("option", opt); // Associe l'objet Option à la case
+            panelOptions.add(checkBox);
+            checkBoxesOptions.add(checkBox);
+        }
+    }
+
+    public List<Option> getOptionsSelectionnees() {
+        List<Option> optionsSelectionnees = new ArrayList<>();
+        for (JCheckBox cb : checkBoxesOptions) {
+            if (cb.isSelected()) {
+                optionsSelectionnees.add((Option) cb.getClientProperty("option"));
+            }
+        }
+        return optionsSelectionnees;
     }
 
     public void afficherListeHebergements(ArrayList<Hebergement> hebergements) {
@@ -163,7 +204,7 @@ public class VueAccueil extends JFrame {
                 }
 
                 // Récupération de la réduction si utilisateur ancien
-                String reductionStr = "-";
+                String reductionStr = "Pas de réduction";
                 if (Inscription.getUtilisateurConnecte() != null &&
                         "ancien".equals(Inscription.getUtilisateurConnecte().getTypeUtilisateur())) {
                     Reduction reduction = hebergementDAO.getReductionParHebergement(h.getId());

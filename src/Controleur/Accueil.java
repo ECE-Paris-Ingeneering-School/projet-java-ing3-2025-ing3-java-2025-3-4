@@ -10,7 +10,6 @@ import Vue.VueReservation;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,7 +24,7 @@ public class Accueil implements ActionListener {
     private AvisDAOImpl avisDAO;
     private UserDAOImpl userDAO;
     private ChambreDAOImpl chambreDAO;
-
+    private OptionDAOImpl optionDAO; // <-- ajouté
 
     private Reserver reserver;
 
@@ -33,7 +32,9 @@ public class Accueil implements ActionListener {
     private ArrayList<Hebergement> hebergementsAffiches;
 
     public Accueil(VueAccueil vueAccueil, HebergementDAOImpl hebergementDAO, VueConnexion vueConnexion,
-                   Reserver reserver, VueReservation vueReservation, ReservationDAOImpl reservationDAO, PaiementDAOImpl paiementDAO, AvisDAOImpl avisDAO, UserDAOImpl userDAO, ChambreDAOImpl chambreDAO) {
+                   Reserver reserver, VueReservation vueReservation, ReservationDAOImpl reservationDAO,
+                   PaiementDAOImpl paiementDAO, AvisDAOImpl avisDAO, UserDAOImpl userDAO,
+                   ChambreDAOImpl chambreDAO, OptionDAOImpl optionDAO) { // <-- modifié
         this.vueAccueil = vueAccueil;
         this.hebergementDAO = hebergementDAO;
         this.vueConnexion = vueConnexion;
@@ -44,6 +45,7 @@ public class Accueil implements ActionListener {
         this.avisDAO = avisDAO;
         this.userDAO = userDAO;
         this.chambreDAO = chambreDAO;
+        this.optionDAO = optionDAO; // <-- ajouté
 
         this.vueAccueil.ajouterEcouteur(this);
         this.vueAccueil.setVisible(false);
@@ -59,7 +61,6 @@ public class Accueil implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         String action = e.getActionCommand();
-
 
         switch (action) {
             case "RECHERCHER":
@@ -78,7 +79,7 @@ public class Accueil implements ActionListener {
 
             case "RESERVER":
                 vueReservation = new VueReservation(vueAccueil, hebergementDAO);
-                reserver = new Reserver(vueAccueil, hebergementDAO, reservationDAO,paiementDAO, vueReservation, avisDAO, userDAO, chambreDAO);
+                reserver = new Reserver(vueAccueil, hebergementDAO, reservationDAO, paiementDAO, vueReservation, avisDAO, userDAO, chambreDAO);
                 vueReservation.ajouterEcouteur(reserver);
                 vueReservation.setVisible(true);
                 break;
@@ -91,7 +92,6 @@ public class Accueil implements ActionListener {
                 vueAccueil.setVisible(true);
                 break;
 
-
             default:
                 vueAccueil.afficherMessage("Action inconnue : " + action);
         }
@@ -99,10 +99,31 @@ public class Accueil implements ActionListener {
 
     private void filtrerHebergements(String lieu, int nbPersonnes, String dateDebut, String dateFin) {
         ArrayList<Hebergement> tousHebergements = hebergementDAO.getAll();
+        List<Option> optionsSelectionnees = vueAccueil.getOptionsSelectionnees(); // <-- récupère les options cochées
 
         List<Hebergement> hebergementsFiltres = tousHebergements.stream()
-                .filter(h -> h.getVille().toLowerCase().contains(lieu.toLowerCase())
-                        || h.getPays().toLowerCase().contains(lieu.toLowerCase()))
+                .filter(h -> {
+                    boolean correspondLieu = h.getVille().toLowerCase().contains(lieu.toLowerCase()) ||
+                            h.getPays().toLowerCase().contains(lieu.toLowerCase());
+
+                    boolean correspondOptions = true;
+                    if (!optionsSelectionnees.isEmpty()) {
+                        // récupérer les options de cet hébergement depuis la BDD
+                        ArrayList<Option> optionsHebergement = optionDAO.getOptionsPourHebergement(h.getId());
+
+                        // vérifier que toutes les options sélectionnées sont présentes
+                        for (Option optSelectionnee : optionsSelectionnees) {
+                            boolean trouvee = optionsHebergement.stream()
+                                    .anyMatch(opt -> opt.getId() == optSelectionnee.getId());
+                            if (!trouvee) {
+                                correspondOptions = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    return correspondLieu && correspondOptions;
+                })
                 .collect(Collectors.toList());
 
         hebergementsAffiches = new ArrayList<>(hebergementsFiltres);
@@ -113,6 +134,4 @@ public class Accueil implements ActionListener {
         VueMesReservations vueMesReservations = new VueMesReservations(reservationDAO, hebergementDAO, avisDAO);
         vueMesReservations.setVisible(true);
     }
-
 }
-
