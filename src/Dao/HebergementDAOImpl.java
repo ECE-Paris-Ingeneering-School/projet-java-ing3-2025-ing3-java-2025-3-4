@@ -220,6 +220,27 @@ public class HebergementDAOImpl implements HebergementDAO {
         return reductions;
     }
 
+    public Reduction getReductionParHebergement(int idHebergement) {
+        // Exemple de code pour récupérer la réduction depuis la base de données
+        Reduction reduction = null;
+        try {
+            // Code pour interroger la base de données et obtenir la réduction
+            String sql = "SELECT * FROM reductions WHERE hebergement_id = ?";
+            // Utiliser un PreparedStatement pour éviter les injections SQL
+            Connection conn = daoFactory.getConnection();
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, idHebergement);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                // Créer l'objet Reduction à partir des données récupérées
+                reduction = new Reduction(idHebergement, rs.getInt("pourcentage"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return reduction;
+    }
+
 
 
 }

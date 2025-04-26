@@ -41,7 +41,7 @@ public class Main {
         VueAccueil vueAccueil = new VueAccueil(daoHebergement);
 
         ReservationDAOImpl daoReservation = new ReservationDAOImpl(dao);
-        VueReservation vueReservation = new VueReservation(vueAccueil);
+        VueReservation vueReservation = new VueReservation(vueAccueil, daoHebergement);
 
         PaiementDAOImpl paiementDAO = new PaiementDAOImpl(dao);
 

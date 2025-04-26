@@ -1,6 +1,9 @@
 package Vue;
 
+import Controleur.Inscription;
+import Dao.HebergementDAOImpl;
 import Modele.Hebergement;
+import Modele.Reduction;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
@@ -9,6 +12,7 @@ import java.awt.event.ActionListener;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
+import java.util.Objects;
 
 public class VueReservation extends JFrame {
 
@@ -18,13 +22,16 @@ public class VueReservation extends JFrame {
     private JSpinner spinnerNbEnfants;
     private JTextField champPrixParNuit;
     private JTextField champPrixTotal;
+    private JLabel labelReduction;
     private JButton btnValider;
     private JLabel labelMessage;
 
     private VueAccueil vueAccueil;
+    private HebergementDAOImpl hebergementDAO;
 
-    public VueReservation(VueAccueil vueAccueil) {
+    public VueReservation(VueAccueil vueAccueil, HebergementDAOImpl hebergementDAO) {
         this.vueAccueil = vueAccueil;
+        this.hebergementDAO = hebergementDAO;
 
         setTitle("Réservation");
         setSize(500, 400);
@@ -32,7 +39,7 @@ public class VueReservation extends JFrame {
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        JPanel panel = new JPanel(new GridLayout(8, 2, 10, 10));
+        JPanel panel = new JPanel(new GridLayout(9, 2, 10, 10)); // 9 lignes pour ajout label réduction
 
         JLabel labelDateArrivee = new JLabel("Date d'arrivée :");
         dateArriveeSpinner = createDateSpinner(0); // Aujourd'hui
@@ -50,6 +57,10 @@ public class VueReservation extends JFrame {
         champPrixParNuit = new JTextField();
         champPrixParNuit.setEditable(false);
 
+        JLabel labelReductionTitre = new JLabel("Réduction appliquée :");
+        labelReduction = new JLabel(""); // Sera rempli dynamiquement
+        labelReduction.setForeground(new Color(0, 128, 0)); // Vert
+
         JLabel labelPrixTotal = new JLabel("Prix total (€) :");
         champPrixTotal = new JTextField();
         champPrixTotal.setEditable(false);
@@ -66,6 +77,7 @@ public class VueReservation extends JFrame {
         panel.add(labelNbAdultes); panel.add(spinnerNbAdultes);
         panel.add(labelNbEnfants); panel.add(spinnerNbEnfants);
         panel.add(labelPrixParNuit); panel.add(champPrixParNuit);
+        panel.add(labelReductionTitre); panel.add(labelReduction); // Nouvelle ligne
         panel.add(labelPrixTotal); panel.add(champPrixTotal);
         panel.add(labelMessage); panel.add(btnValider);
 
@@ -103,33 +115,51 @@ public class VueReservation extends JFrame {
                 champPrixParNuit.setText("");
                 champPrixTotal.setText("");
                 labelMessage.setText("Aucun hébergement sélectionné.");
+                labelReduction.setText("");
                 return;
             }
 
-            champPrixParNuit.setText(String.format(Locale.US, "%.2f", h.getPrixParNuit()));
+            double prixParNuit = h.getPrixParNuit();
+            labelReduction.setText("");
+
+            if (Objects.equals(Inscription.getUtilisateurConnecte().getTypeUtilisateur(), "ancien")) {
+                Reduction reduction = hebergementDAO.getReductionParHebergement(h.getId());
+                if (reduction != null) {
+                    prixParNuit = prixParNuit * (1 - reduction.getPourcentage() / 100.0);
+                    labelReduction.setText(reduction.getPourcentage() + "% de réduction appliquée");
+                }
+            } else{
+                labelReduction.setForeground(new Color(0, 0, 0));
+                labelReduction.setText("-");
+            }
+
+            champPrixParNuit.setText(String.format(Locale.US, "%.2f", prixParNuit));
 
             Date dateArrivee = resetTime((Date) dateArriveeSpinner.getValue());
             Date dateDepart = resetTime((Date) dateDepartSpinner.getValue());
             int nbAdultes = (int) spinnerNbAdultes.getValue();
             int nbEnfants = (int) spinnerNbEnfants.getValue();
 
-            if (!dateArrivee.after(dateDepart)) {
-                long difference = dateDepart.getTime() - dateArrivee.getTime();
-                long nombreNuits = Math.max(1, difference / (1000 * 60 * 60 * 24)); // Minimum 1 nuit
-
-                double prixTotal = h.getPrixParNuit() * nombreNuits * nbAdultes
-                        + (h.getPrixParNuit() * 0.5 * nbEnfants * nombreNuits);
-
-                champPrixTotal.setText(String.format(Locale.US, "%.2f", prixTotal));
-                labelMessage.setText("");
-            } else {
+            if (!dateDepart.after(dateArrivee)) {
                 champPrixTotal.setText("");
-                labelMessage.setText("Vérifiez les dates.");
+                labelMessage.setText("La date de départ doit être après celle d'arrivée.");
+                return;
             }
 
+            long difference = dateDepart.getTime() - dateArrivee.getTime();
+            long nombreNuits = Math.max(1, difference / (1000 * 60 * 60 * 24));
+
+            double prixTotal = prixParNuit * nombreNuits * nbAdultes
+                    + (prixParNuit * 0.5 * nbEnfants * nombreNuits);
+
+            champPrixTotal.setText(String.format(Locale.US, "%.2f", prixTotal));
+            labelMessage.setText("");
+
         } catch (Exception e) {
+            e.printStackTrace();
             champPrixTotal.setText("");
             labelMessage.setText("Erreur lors du calcul.");
+            labelReduction.setText("");
         }
     }
 

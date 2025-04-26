@@ -75,7 +75,7 @@ public class Accueil implements ActionListener {
                 break;
 
             case "RESERVER":
-                vueReservation = new VueReservation(vueAccueil);
+                vueReservation = new VueReservation(vueAccueil, hebergementDAO);
                 reserver = new Reserver(vueAccueil, hebergementDAO, reservationDAO,paiementDAO, vueReservation, avisDAO, userDAO);
                 vueReservation.ajouterEcouteur(reserver);
                 vueReservation.setVisible(true);
