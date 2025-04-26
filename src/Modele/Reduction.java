@@ -27,6 +27,12 @@ public class Reduction {
         this.dateFin = dateFin;
     }
 
+    public Reduction(int hebergementId, int pourcentage, String description) {
+        this.hebergementId = hebergementId;
+        this.pourcentage = pourcentage;
+        this.description = description;
+    }
+
     public Reduction(int hebergementId, int pourcentage) {
         this.hebergementId = hebergementId;
         this.pourcentage = pourcentage;

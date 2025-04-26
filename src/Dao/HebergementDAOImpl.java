@@ -203,7 +203,7 @@ public class HebergementDAOImpl implements HebergementDAO {
     public List<Reduction> getAllReductions() {
         List<Reduction> reductions = new ArrayList<>();
 
-        String sql = "SELECT hebergement_id, pourcentage FROM reductions";
+        String sql = "SELECT hebergement_id, pourcentage,description FROM reductions";
         try (Connection conn = daoFactory.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             ResultSet rs = stmt.executeQuery();
@@ -211,7 +211,8 @@ public class HebergementDAOImpl implements HebergementDAO {
             while (rs.next()) {
                 int hebergementId = rs.getInt("hebergement_id");
                 int pourcentage = rs.getInt("pourcentage");
-                reductions.add(new Reduction(hebergementId, pourcentage));
+                String description = rs.getString("description");
+                reductions.add(new Reduction(hebergementId, pourcentage, description));
             }
         } catch (SQLException e) {
             e.printStackTrace();
