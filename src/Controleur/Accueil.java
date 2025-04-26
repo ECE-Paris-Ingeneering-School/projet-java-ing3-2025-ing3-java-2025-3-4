@@ -24,6 +24,7 @@ public class Accueil implements ActionListener {
     private PaiementDAOImpl paiementDAO;
     private AvisDAOImpl avisDAO;
     private UserDAOImpl userDAO;
+    private ChambreDAOImpl chambreDAO;
 
 
     private Reserver reserver;
@@ -32,7 +33,7 @@ public class Accueil implements ActionListener {
     private ArrayList<Hebergement> hebergementsAffiches;
 
     public Accueil(VueAccueil vueAccueil, HebergementDAOImpl hebergementDAO, VueConnexion vueConnexion,
-                   Reserver reserver, VueReservation vueReservation, ReservationDAOImpl reservationDAO, PaiementDAOImpl paiementDAO, AvisDAOImpl avisDAO, UserDAOImpl userDAO) {
+                   Reserver reserver, VueReservation vueReservation, ReservationDAOImpl reservationDAO, PaiementDAOImpl paiementDAO, AvisDAOImpl avisDAO, UserDAOImpl userDAO, ChambreDAOImpl chambreDAO) {
         this.vueAccueil = vueAccueil;
         this.hebergementDAO = hebergementDAO;
         this.vueConnexion = vueConnexion;
@@ -42,6 +43,7 @@ public class Accueil implements ActionListener {
         this.paiementDAO = paiementDAO;
         this.avisDAO = avisDAO;
         this.userDAO = userDAO;
+        this.chambreDAO = chambreDAO;
 
         this.vueAccueil.ajouterEcouteur(this);
         this.vueAccueil.setVisible(false);
@@ -76,7 +78,7 @@ public class Accueil implements ActionListener {
 
             case "RESERVER":
                 vueReservation = new VueReservation(vueAccueil, hebergementDAO);
-                reserver = new Reserver(vueAccueil, hebergementDAO, reservationDAO,paiementDAO, vueReservation, avisDAO, userDAO);
+                reserver = new Reserver(vueAccueil, hebergementDAO, reservationDAO,paiementDAO, vueReservation, avisDAO, userDAO, chambreDAO);
                 vueReservation.ajouterEcouteur(reserver);
                 vueReservation.setVisible(true);
                 break;

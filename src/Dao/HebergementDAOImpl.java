@@ -1,6 +1,7 @@
 package Dao;
 
 import Modele.Avis;
+import Modele.Chambre;
 import Modele.Hebergement;
 import Modele.Reduction;
 
@@ -34,7 +35,9 @@ public class HebergementDAOImpl implements HebergementDAO {
                         resultats.getString("pays"),
                         resultats.getDouble("prix_par_nuit"),
                         resultats.getString("categorie"),
-                        resultats.getString("photo") // Nouveau champ ajouté
+                        resultats.getString("photo"),
+                        resultats.getInt("nb_chambre"),  ///  bizarre?
+                        resultats.getInt("place")
                 );
                 listeHebergements.add(h);
             }
@@ -52,7 +55,7 @@ public class HebergementDAOImpl implements HebergementDAO {
             Connection connexion = daoFactory.getConnection();
 
             PreparedStatement ps = connexion.prepareStatement(
-                    "INSERT INTO Hebergements (nom, description, adresse, ville, pays, categorie, prix_par_nuit, photo) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+                    "INSERT INTO Hebergements (nom, description, adresse, ville, pays, categorie, prix_par_nuit, photo, place, nb_chambre) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
             );
             ps.setString(1, h.getNom());
             ps.setString(2, h.getDescription());
@@ -61,7 +64,9 @@ public class HebergementDAOImpl implements HebergementDAO {
             ps.setString(5, h.getPays());
             ps.setString(6, h.getCategorie());
             ps.setDouble(7, h.getPrixParNuit());
-            ps.setString(8, h.getPhoto()); // Ajout du champ photo
+            ps.setString(8, h.getPhoto());
+            ps.setInt(9, h.getPlace());
+            ps.setInt(10, h.getNbChambres());
 
             ps.executeUpdate();
         } catch (SQLException e) {
@@ -90,7 +95,9 @@ public class HebergementDAOImpl implements HebergementDAO {
                         resultats.getString("pays"),
                         resultats.getDouble("prix_par_nuit"),
                         resultats.getString("categorie"),
-                        resultats.getString("photo") // Ajout du champ photo
+                        resultats.getString("photo"),
+                        resultats.getInt("place"),
+                        resultats.getInt("nb_chambre")
                 );
             }
         } catch (SQLException e) {
@@ -107,7 +114,7 @@ public class HebergementDAOImpl implements HebergementDAO {
             Connection connexion = daoFactory.getConnection();
 
             PreparedStatement ps = connexion.prepareStatement(
-                    "UPDATE Hebergements SET nom = ?, description = ?, adresse = ?, ville = ?, pays = ?, categorie = ?, prix_par_nuit = ?, photo = ? WHERE hebergement_id = ?"
+                    "UPDATE Hebergements SET nom = ?, description = ?, adresse = ?, ville = ?, pays = ?, categorie = ?, prix_par_nuit = ?, photo = ?, place = ?, nb_chambre = ? WHERE hebergement_id = ?"
             );
             ps.setString(1, h.getNom());
             ps.setString(2, h.getDescription());
@@ -116,8 +123,10 @@ public class HebergementDAOImpl implements HebergementDAO {
             ps.setString(5, h.getPays());
             ps.setString(6, h.getCategorie());
             ps.setDouble(7, h.getPrixParNuit());
-            ps.setString(8, h.getPhoto()); // Ajout du champ photo
-            ps.setInt(9, h.getId());
+            ps.setString(8, h.getPhoto());
+            ps.setInt(9, h.getPlace()); // Nouveau champ ajouté
+            ps.setInt(10, h.getNbChambres()); // Nouveau champ ajouté
+            ps.setInt(11, h.getId());
 
             ps.executeUpdate();
         } catch (SQLException e) {
@@ -203,7 +212,7 @@ public class HebergementDAOImpl implements HebergementDAO {
     public List<Reduction> getAllReductions() {
         List<Reduction> reductions = new ArrayList<>();
 
-        String sql = "SELECT hebergement_id, pourcentage,description FROM reductions";
+        String sql = "SELECT hebergement_id, pourcentage, description FROM reductions";
         try (Connection conn = daoFactory.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
             ResultSet rs = stmt.executeQuery();
@@ -222,18 +231,14 @@ public class HebergementDAOImpl implements HebergementDAO {
     }
 
     public Reduction getReductionParHebergement(int idHebergement) {
-        // Exemple de code pour récupérer la réduction depuis la base de données
         Reduction reduction = null;
         try {
-            // Code pour interroger la base de données et obtenir la réduction
             String sql = "SELECT * FROM reductions WHERE hebergement_id = ?";
-            // Utiliser un PreparedStatement pour éviter les injections SQL
             Connection conn = daoFactory.getConnection();
             PreparedStatement stmt = conn.prepareStatement(sql);
             stmt.setInt(1, idHebergement);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) {
-                // Créer l'objet Reduction à partir des données récupérées
                 reduction = new Reduction(idHebergement, rs.getInt("pourcentage"));
             }
         } catch (SQLException e) {
@@ -243,5 +248,33 @@ public class HebergementDAOImpl implements HebergementDAO {
     }
 
 
+    public List<Chambre> getChambresDisponibles(int hebergementId) {
+        List<Chambre> chambresDisponibles = new ArrayList<>();
+        try {
+            Connection conn = daoFactory.getConnection();
+            PreparedStatement ps = conn.prepareStatement(
+                    "SELECT * FROM chambre WHERE hebergement_id = ?"
+            );
+            ps.setInt(1, hebergementId);
+            ResultSet rs = ps.executeQuery();
+
+            while (rs.next()) {
+                boolean dispo = rs.getBoolean("dispo"); // utilise bien la colonne dispo !
+                if (dispo) {
+                    Chambre chambre = new Chambre(
+                            rs.getInt("id_chambre"),
+                            rs.getInt("hebergement_id"),
+                            rs.getInt("place_max"),
+                            true
+                    );
+                    chambresDisponibles.add(chambre);
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return chambresDisponibles;
+    }
 
 }

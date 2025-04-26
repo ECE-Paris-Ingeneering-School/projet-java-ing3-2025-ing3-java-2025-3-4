@@ -4,6 +4,7 @@ import Controleur.Inscription;
 import Dao.HebergementDAOImpl;
 import Modele.Hebergement;
 import Modele.Reduction;
+import Modele.Chambre;
 
 import javax.swing.*;
 import javax.swing.event.ChangeListener;
@@ -11,6 +12,7 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -20,6 +22,9 @@ public class VueReservation extends JFrame {
     private JSpinner dateDepartSpinner;
     private JSpinner spinnerNbAdultes;
     private JSpinner spinnerNbEnfants;
+    private JSpinner spinnerNbChambres;
+    private JLabel labelChambresFixes;
+
     private JTextField champPrixParNuit;
     private JTextField champPrixTotal;
     private JLabel labelReduction;
@@ -34,34 +39,37 @@ public class VueReservation extends JFrame {
         this.hebergementDAO = hebergementDAO;
 
         setTitle("Réservation");
-        setSize(500, 400);
+        setSize(500, 500);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setLayout(new BorderLayout());
 
-        JPanel panel = new JPanel(new GridLayout(9, 2, 10, 10)); // 9 lignes pour ajout label réduction
+        JPanel panel = new JPanel(new GridLayout(11, 2, 10, 10));
 
         JLabel labelDateArrivee = new JLabel("Date d'arrivée :");
-        dateArriveeSpinner = createDateSpinner(0); // Aujourd'hui
+        dateArriveeSpinner = createDateSpinner(0);
 
         JLabel labelDateDepart = new JLabel("Date de départ :");
-        dateDepartSpinner = createDateSpinner(1); // Demain
+        dateDepartSpinner = createDateSpinner(1);
 
         JLabel labelNbAdultes = new JLabel("Nombre d'adultes :");
-        spinnerNbAdultes = new JSpinner(new SpinnerNumberModel(1, 1, 10, 1));
+        spinnerNbAdultes = new JSpinner(new SpinnerNumberModel(1, 1, 100, 1));
 
         JLabel labelNbEnfants = new JLabel("Nombre d'enfants :");
-        spinnerNbEnfants = new JSpinner(new SpinnerNumberModel(0, 0, 10, 1));
+        spinnerNbEnfants = new JSpinner(new SpinnerNumberModel(0, 0, 100, 1));
+
+        JLabel labelNbChambres = new JLabel("Nombre de chambres :");
+        spinnerNbChambres = new JSpinner(new SpinnerNumberModel(1, 1, 100, 1));
+        labelChambresFixes = new JLabel("");
+        labelChambresFixes.setVisible(false);
 
         JLabel labelPrixParNuit = new JLabel("Prix par nuit (€) :");
         champPrixParNuit = new JTextField();
         champPrixParNuit.setEditable(false);
 
         JLabel labelReductionTitre = new JLabel("Réduction appliquée :");
-        labelReduction = new JLabel(""); // Sera rempli dynamiquement
+        labelReduction = new JLabel("");
         labelReduction.setForeground(new Color(0, 0, 0));
-
-
 
         JLabel labelPrixTotal = new JLabel("Prix total (€) :");
         champPrixTotal = new JTextField();
@@ -78,21 +86,22 @@ public class VueReservation extends JFrame {
         panel.add(labelDateDepart); panel.add(dateDepartSpinner);
         panel.add(labelNbAdultes); panel.add(spinnerNbAdultes);
         panel.add(labelNbEnfants); panel.add(spinnerNbEnfants);
+        panel.add(labelNbChambres); panel.add(spinnerNbChambres);
+        panel.add(new JLabel("")); panel.add(labelChambresFixes);
         panel.add(labelPrixParNuit); panel.add(champPrixParNuit);
-        panel.add(labelReductionTitre); panel.add(labelReduction); // Nouvelle ligne
+        panel.add(labelReductionTitre); panel.add(labelReduction);
         panel.add(labelPrixTotal); panel.add(champPrixTotal);
         panel.add(labelMessage); panel.add(btnValider);
 
         add(panel, BorderLayout.CENTER);
 
-        // Listeners pour recalculer automatiquement
         ChangeListener recalculListener = e -> calculerPrixTotal();
         dateArriveeSpinner.addChangeListener(recalculListener);
         dateDepartSpinner.addChangeListener(recalculListener);
         spinnerNbAdultes.addChangeListener(recalculListener);
         spinnerNbEnfants.addChangeListener(recalculListener);
+        spinnerNbChambres.addChangeListener(recalculListener);
 
-        // Calcul initial au chargement
         SwingUtilities.invokeLater(this::calculerPrixTotal);
     }
 
@@ -127,8 +136,8 @@ public class VueReservation extends JFrame {
             if (Objects.equals(Inscription.getUtilisateurConnecte().getTypeUtilisateur(), "ancien")) {
                 Reduction reduction = hebergementDAO.getReductionParHebergement(h.getId());
                 if (reduction != null) {
-                    prixParNuit = prixParNuit * (1 - reduction.getPourcentage() / 100.0);
-                    labelReduction.setForeground(new Color(0, 128, 0)); // Vert
+                    prixParNuit *= (1 - reduction.getPourcentage() / 100.0);
+                    labelReduction.setForeground(new Color(0, 128, 0));
                     labelReduction.setText(reduction.getPourcentage() + "% de réduction appliquée");
                 } else {
                     labelReduction.setText("-");
@@ -141,8 +150,6 @@ public class VueReservation extends JFrame {
 
             Date dateArrivee = resetTime((Date) dateArriveeSpinner.getValue());
             Date dateDepart = resetTime((Date) dateDepartSpinner.getValue());
-            int nbAdultes = (int) spinnerNbAdultes.getValue();
-            int nbEnfants = (int) spinnerNbEnfants.getValue();
 
             if (!dateDepart.after(dateArrivee)) {
                 champPrixTotal.setText("");
@@ -153,8 +160,53 @@ public class VueReservation extends JFrame {
             long difference = dateDepart.getTime() - dateArrivee.getTime();
             long nombreNuits = Math.max(1, difference / (1000 * 60 * 60 * 24));
 
-            double prixTotal = prixParNuit * nombreNuits * nbAdultes
-                    + (prixParNuit * 0.5 * nbEnfants * nombreNuits);
+            int nbAdultes = (int) spinnerNbAdultes.getValue();
+            int nbEnfants = (int) spinnerNbEnfants.getValue();
+            int nbPersonnes = nbAdultes + nbEnfants;
+
+            boolean estHotel = h.getCategorie().equalsIgnoreCase("hotel");
+            double prixTotal;
+
+            if (estHotel) {
+                spinnerNbChambres.setVisible(true);
+                spinnerNbChambres.setEnabled(true);
+                labelChambresFixes.setVisible(true);
+
+                List<Chambre> chambresDisponibles = hebergementDAO.getChambresDisponibles(h.getId());
+                int nbChambresDispo = chambresDisponibles.size();
+                labelChambresFixes.setText(nbChambresDispo + " chambre(s) disponible(s)");
+
+                SpinnerNumberModel model = (SpinnerNumberModel) spinnerNbChambres.getModel();
+                model.setMaximum(nbChambresDispo);
+
+                int nbChambresDemandees = (int) spinnerNbChambres.getValue();
+                if (nbChambresDemandees > nbChambresDispo) {
+                    labelMessage.setText("Pas assez de chambres disponibles.");
+                    champPrixTotal.setText("");
+                    return;
+                }
+
+                int capaciteTotale = 0;
+                for (int i = 0; i < nbChambresDemandees && i < chambresDisponibles.size(); i++) {
+                    capaciteTotale += chambresDisponibles.get(i).getPlaceMax();
+                }
+
+                if (capaciteTotale < nbPersonnes) {
+                    labelMessage.setText("La capacité des chambres sélectionnées est insuffisante.");
+                    champPrixTotal.setText("");
+                    return;
+                }
+
+                prixTotal = prixParNuit * nombreNuits * nbChambresDemandees;
+
+            } else {
+                spinnerNbChambres.setVisible(false);
+                spinnerNbChambres.setEnabled(false);
+                labelChambresFixes.setVisible(true);
+                labelChambresFixes.setText("Logement avec " + h.getNbChambres() + " chambre(s)");
+
+                prixTotal = prixParNuit * nombreNuits;
+            }
 
             champPrixTotal.setText(String.format(Locale.US, "%.2f", prixTotal));
             labelMessage.setText("");
@@ -177,7 +229,6 @@ public class VueReservation extends JFrame {
         return cal.getTime();
     }
 
-    // Getters
     public Date getDateArrivee() {
         return (Date) dateArriveeSpinner.getValue();
     }
@@ -201,6 +252,10 @@ public class VueReservation extends JFrame {
             System.err.println("Erreur de conversion prix total : " + champPrixTotal.getText());
             return 0.0;
         }
+    }
+
+    public int getNbChambres() {
+        return (int) spinnerNbChambres.getValue();
     }
 
     public void ajouterEcouteur(ActionListener listener) {

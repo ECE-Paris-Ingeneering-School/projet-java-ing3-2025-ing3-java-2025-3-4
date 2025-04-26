@@ -1,8 +1,7 @@
 package Controleur;
 
-import Dao.HebergementDAOImpl;
-import Dao.OptionDAOImpl;
-import Dao.ReductionDAO;
+import Dao.*;
+import Modele.Chambre;
 import Modele.Hebergement;
 import Modele.Option;
 import Modele.Reduction;
@@ -19,12 +18,15 @@ public class AccueilAdmin implements ActionListener {
     private OptionDAOImpl optionDAO;
     private HebergementDAOImpl hebergementDAO;
     private ReductionDAO reductionDAO;
+    private ChambreDAOImpl chambreDAO;
 
     private VueAjoutHebergement vueAjoutHebergement;
     private VueAjouterOption vueAjouterOption;
     private VueModifierSupprimerOption vueModifierSupprimerOption;
     private VueAssocierOptionsHebergement vueAssocierOptionsHebergement;
     private VueAjouterReduction vueAjouterReduction;
+    private VueAjouterChambre vueAjouterChambre;
+
 
     public AccueilAdmin(VueAccueilAdmin vue,
                         VueAjoutHebergement vueAjoutHebergement,
@@ -34,7 +36,7 @@ public class AccueilAdmin implements ActionListener {
                         VueAjouterReduction vueAjouterReduction,
                         OptionDAOImpl optionDAO,
                         HebergementDAOImpl hebergementDAO,
-                        ReductionDAO reductionDAO) {
+                        ReductionDAO reductionDAO, VueAjouterChambre  vueAjouterChambre, ChambreDAOImpl chambreDAO) {
 
         this.vue = vue;
         this.vueAjoutHebergement = vueAjoutHebergement;
@@ -42,10 +44,12 @@ public class AccueilAdmin implements ActionListener {
         this.vueModifierSupprimerOption = vueModifierSupprimerOption;
         this.vueAssocierOptionsHebergement = vueAssocierOptionsHebergement;
         this.vueAjouterReduction = vueAjouterReduction;
+        this.vueAjouterChambre = vueAjouterChambre;
 
         this.optionDAO = optionDAO;
         this.hebergementDAO = hebergementDAO;
         this.reductionDAO = reductionDAO;
+        this.chambreDAO = chambreDAO;
 
         // Masquer les vues sauf accueil
         vueAjoutHebergement.setVisible(false);
@@ -53,6 +57,7 @@ public class AccueilAdmin implements ActionListener {
         vueModifierSupprimerOption.setVisible(false);
         vueAssocierOptionsHebergement.setVisible(false);
         vueAjouterReduction.setVisible(false);
+        vueAjouterChambre.setVisible(false);
 
         // Ajouter les écouteurs
         vue.ajouterEcouteur(this);
@@ -61,6 +66,8 @@ public class AccueilAdmin implements ActionListener {
         vueModifierSupprimerOption.ajouterEcouteur(this);
         vueAssocierOptionsHebergement.ajouterEcouteur(this);
         vueAjouterReduction.ajouterEcouteur(this);
+        vueAjouterChambre.ajouterEcouteur(this);
+
     }
 
     @Override
@@ -93,7 +100,9 @@ public class AccueilAdmin implements ActionListener {
                             vueAjoutHebergement.getPays(),
                             Double.parseDouble(vueAjoutHebergement.getPrix()),
                             vueAjoutHebergement.getCategorie(),
-                            vueAjoutHebergement.getPhoto()
+                            vueAjoutHebergement.getPhoto(),
+                            vueAjoutHebergement.getPlace(),
+                            vueAjoutHebergement.getNbChambre()
                     );
                     hebergementDAO.ajouter(h);
                     vueAjoutHebergement.afficherMessage("Hébergement ajouté avec succès !");
@@ -222,6 +231,36 @@ public class AccueilAdmin implements ActionListener {
                 }
                 break;
 
+            case "AJOUTER_CHAMBRE":
+                vue.setVisible(false);
+                vueAjouterChambre.setVisible(true);
+                break;
+
+            case "AJOUT_CHAMBRE_BDD":
+                String hebergementIdStr = vueAjouterChambre.getHebergementId();
+                String capaciteStr = vueAjouterChambre.getCapacite();
+
+                if (hebergementIdStr.isEmpty() || capaciteStr.isEmpty()) {
+                    vueAjouterChambre.afficherMessage("Veuillez remplir tous les champs.");
+                    return;
+                }
+
+                try {
+                    int idHebergement = Integer.parseInt(hebergementIdStr);
+                    int capacite = Integer.parseInt(capaciteStr);
+
+                    Chambre chambre = new Chambre(idHebergement, capacite, false);
+                    chambreDAO.ajouter(chambre);
+                    vueAjouterChambre.afficherMessage("Chambre ajoutée avec succès !");
+                    vueAjouterChambre.resetChamps();
+
+                } catch (NumberFormatException ex) {
+                    vueAjouterChambre.afficherMessage("ID hébergement et capacité doivent être des nombres valides.");
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    vueAjouterChambre.afficherMessage("Erreur lors de l'ajout de la chambre.");
+                }
+                break;
             case "RETOUR_ACCUEIL":
                 vueAjoutHebergement.setVisible(false);
                 vueAjouterOption.setVisible(false);

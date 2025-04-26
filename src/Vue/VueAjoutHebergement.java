@@ -20,13 +20,17 @@ public class VueAjoutHebergement extends JFrame {
     private JButton boutonAjouter;
     private JButton boutonRetour;
 
+    // Ajout des nouveaux champs pour place et nb_chambre
+    private JTextField champPlace;
+    private JTextField champNbChambre;
+
     public VueAjoutHebergement() {
         setTitle("Ajouter un Hébergement");
-        setSize(600, 500);
+        setSize(600, 600); // Augmenté la taille pour accueillir les nouveaux champs
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        JPanel panelFormulaire = new JPanel(new GridLayout(9, 2, 10, 10));
+        JPanel panelFormulaire = new JPanel(new GridLayout(11, 2, 10, 10)); // 11 lignes maintenant
         panelFormulaire.setBorder(BorderFactory.createTitledBorder("Formulaire d'ajout"));
 
         champNom = new JTextField();
@@ -51,6 +55,10 @@ public class VueAjoutHebergement extends JFrame {
         panelPhoto.add(champPhoto, BorderLayout.CENTER);
         panelPhoto.add(boutonParcourir, BorderLayout.EAST);
 
+        // Nouveaux champs
+        champPlace = new JTextField();
+        champNbChambre = new JTextField();
+
         boutonAjouter = new JButton("Ajouter");
         boutonAjouter.setActionCommand("AJOUTER_HEBERGEMENT");
 
@@ -73,7 +81,14 @@ public class VueAjoutHebergement extends JFrame {
         panelFormulaire.add(scrollDescription);
         panelFormulaire.add(new JLabel("Photo (chemin) :"));
         panelFormulaire.add(panelPhoto);
-        panelFormulaire.add(new JLabel(""));
+
+        // Ajout des nouveaux champs pour place et nb_chambre
+        panelFormulaire.add(new JLabel("Place (nombre de personnes) :"));
+        panelFormulaire.add(champPlace);
+        panelFormulaire.add(new JLabel("Nombre de chambres :"));
+        panelFormulaire.add(champNbChambre);
+
+        panelFormulaire.add(new JLabel("")); // Une ligne vide avant les boutons
         panelFormulaire.add(boutonAjouter);
 
         JPanel panelBas = new JPanel();
@@ -83,7 +98,6 @@ public class VueAjoutHebergement extends JFrame {
         add(panelFormulaire, BorderLayout.CENTER);
         add(panelBas, BorderLayout.SOUTH);
     }
-
 
     private void choisirFichierPhoto() {
         JFileChooser fileChooser = new JFileChooser();
@@ -103,6 +117,8 @@ public class VueAjoutHebergement extends JFrame {
     public String getPrix() { return champPrix.getText(); }
     public String getDescription() { return champDescription.getText(); }
     public String getPhoto() { return champPhoto.getText(); }
+    public int getPlace() { return Integer.parseInt(champPlace.getText()); }
+    public int getNbChambre() { return Integer.parseInt(champNbChambre.getText()); }
 
     public void ajouterEcouteur(ActionListener listener) {
         boutonAjouter.addActionListener(listener);
@@ -122,5 +138,7 @@ public class VueAjoutHebergement extends JFrame {
         champPrix.setText("");
         champDescription.setText("");
         champPhoto.setText("");
+        champPlace.setText(""); // Reset du champ place
+        champNbChambre.setText(""); // Reset du champ nb_chambre
     }
 }

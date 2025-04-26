@@ -12,8 +12,12 @@ public class Hebergement {
     private double noteMoyenne;
     private int etoiles;
     private String photo;
+    private int nbChambres;
+    private int place;
 
-    public Hebergement(int id, String nom, String description, String adresse, String ville, String pays, double prixParNuit, String categorie, String photo) {
+
+    public Hebergement(int id, String nom, String description, String adresse, String ville, String pays,
+                       double prixParNuit, String categorie, String photo, int nbChambres, int place) {
         this.id = id;
         this.nom = nom;
         this.description = description;
@@ -23,8 +27,12 @@ public class Hebergement {
         this.prixParNuit = prixParNuit;
         this.categorie = categorie;
         this.photo = photo;
+        this.place = place;
+        this.nbChambres = nbChambres;
+
     }
 
+    // Getters
     public int getId() { return id; }
     public String getNom() { return nom; }
     public String getDescription() { return description; }
@@ -36,7 +44,10 @@ public class Hebergement {
     public double getNoteMoyenne() { return noteMoyenne; }
     public int getEtoiles() { return etoiles; }
     public String getPhoto() { return photo; }
+    public int getNbChambres() { return nbChambres; }
+    public int getPlace() { return place; }
 
+    // Setters
     public void setNom(String nom) { this.nom = nom; }
     public void setDescription(String description) { this.description = description; }
     public void setAdresse(String adresse) { this.adresse = adresse; }
@@ -45,10 +56,13 @@ public class Hebergement {
     public void setPrixParNuit(double prixParNuit) { this.prixParNuit = prixParNuit; }
     public void setCategorie(String categorie) { this.categorie = categorie; }
     public void setNoteMoyenne(double noteMoyenne) { this.noteMoyenne = noteMoyenne; }
-    public void setEtoiles(Integer etoiles) { this.etoiles = etoiles; }
+    public void setEtoiles(int etoiles) { this.etoiles = etoiles; }
     public void setPhoto(String photo) { this.photo = photo; }
+    public void setNbChambres(int nbChambres) { this.nbChambres = nbChambres; }
+    public void setPlace(int place) { this.place = place; }
 
-    public String toString(){
-        return nom + "(" + ville +")";
+    @Override
+    public String toString() {
+        return nom + " (" + ville + ")";
     }
 }

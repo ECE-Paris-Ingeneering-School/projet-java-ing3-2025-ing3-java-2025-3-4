@@ -47,10 +47,13 @@ public class Main {
 
         AvisDAOImpl avisDAO = new AvisDAOImpl(dao);
 
-        //  reservation
-        Reserver reserver = new Reserver(vueAccueil, daoHebergement, daoReservation, paiementDAO, vueReservation, avisDAO, daoUser);
+        ChambreDAOImpl chambreDAO = new ChambreDAOImpl(dao);
 
-        Accueil accueil = new Accueil(vueAccueil, daoHebergement , vueConnexion, reserver, vueReservation, daoReservation, paiementDAO, avisDAO, daoUser);
+
+        //  reservation
+        Reserver reserver = new Reserver(vueAccueil, daoHebergement, daoReservation, paiementDAO, vueReservation, avisDAO, daoUser, chambreDAO);
+
+        Accueil accueil = new Accueil(vueAccueil, daoHebergement , vueConnexion, reserver, vueReservation, daoReservation, paiementDAO, avisDAO, daoUser, chambreDAO);
 
 
         /// accueil admin
@@ -62,6 +65,8 @@ public class Main {
         VueAjoutHebergement vueAjoutHebergement = new VueAjoutHebergement();
         VueAjouterReduction vueAjouterReduction = new VueAjouterReduction();
         ReductionDAOImpl reductionDAO = new ReductionDAOImpl(dao);
+        VueAjouterChambre vueAjouterChambre = new VueAjouterChambre();
+
 
         AccueilAdmin controleurAdmin = new AccueilAdmin(
                 vueAccueilAdmin,
@@ -72,7 +77,9 @@ public class Main {
                 vueAjouterReduction,
                 daoOption,
                 daoHebergement,
-                reductionDAO
+                reductionDAO,
+                vueAjouterChambre,
+                chambreDAO
         );
 
 

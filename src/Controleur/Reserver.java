@@ -10,6 +10,7 @@ import Vue.VueReservation;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Date;
+import java.util.List;
 
 public class Reserver implements ActionListener {
     private VueAccueil vueAccueil;
@@ -20,6 +21,7 @@ public class Reserver implements ActionListener {
     private VuePaiement vuePaiement;
     private AvisDAOImpl avisDAO;
     private UserDAOImpl userDAO;
+    private ChambreDAOImpl chambreDAO;
 
     private java.util.Date dateArrivee;
     private java.util.Date dateDepart;
@@ -29,7 +31,9 @@ public class Reserver implements ActionListener {
 
     public Reserver(VueAccueil vueAccueil, HebergementDAOImpl hebergementDAO,
                     ReservationDAOImpl reservationDAO, PaiementDAOImpl paiementDAO,
-                    VueReservation vueReservation, AvisDAOImpl avisDAO, UserDAOImpl userDAO) {
+                    VueReservation vueReservation, AvisDAOImpl avisDAO, UserDAOImpl userDAO,
+                    ChambreDAOImpl chambreDAO) {
+
         this.vueAccueil = vueAccueil;
         this.hebergementDAO = hebergementDAO;
         this.reservationDAO = reservationDAO;
@@ -37,10 +41,9 @@ public class Reserver implements ActionListener {
         this.vueReservation = vueReservation;
         this.avisDAO = avisDAO;
         this.userDAO = userDAO;
+        this.chambreDAO = chambreDAO;
 
-        this.vueReservation.ajouterEcouteur(this);  // Ajoute l'écouteur pour "Valider réservation"
-        //this.vueAccueil.ajouterEcouteur(this);      // <<--- IMPORTANT : écouter aussi les actions de VueAccueil
-
+        this.vueReservation.ajouterEcouteur(this);
     }
 
     @Override
@@ -57,6 +60,7 @@ public class Reserver implements ActionListener {
                 vuePaiement.setVisible(false);
                 vueAccueil.setVisible(true);
                 vueAccueil.afficherMessage("Paiement confirmé. Votre réservation est enregistrée !");
+
                 if (Inscription.getUtilisateurConnecte().getTypeUtilisateur().equals("nouveau")) {
                     userDAO.updateTypeUtilisateur(Inscription.getUtilisateurId(), "ancien");
                 }
@@ -107,6 +111,15 @@ public class Reserver implements ActionListener {
         );
 
         paiementDAO.ajouter(paiement);
-    }
 
+        //  Marquer les chambres comme non disponibles
+        Hebergement hebergement = vueAccueil.getHebergementSelectionne();
+        int nbChambresReservees = vueReservation.getNbChambres();
+        List<Chambre> chambresDisponibles = hebergementDAO.getChambresDisponibles(hebergement.getId());
+
+        for (int i = 0; i < nbChambresReservees && i < chambresDisponibles.size(); i++) {
+            Chambre chambre = chambresDisponibles.get(i);
+            chambreDAO.mettreAJourDisponibilite(chambre.getId(), false);
+        }
+    }
 }

@@ -167,7 +167,7 @@ public class VueAccueil extends JFrame {
                     h.getPrixParNuit() + " €",
                     noteStr,
                     genererEtoiles(h.getEtoiles()),
-                    reductionStr,  // Affichage de la réduction
+                    reductionStr,
                     "Réserver"
             });
         }
