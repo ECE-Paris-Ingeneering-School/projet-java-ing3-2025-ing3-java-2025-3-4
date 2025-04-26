@@ -59,7 +59,9 @@ public class VueReservation extends JFrame {
 
         JLabel labelReductionTitre = new JLabel("Réduction appliquée :");
         labelReduction = new JLabel(""); // Sera rempli dynamiquement
-        labelReduction.setForeground(new Color(0, 128, 0)); // Vert
+        labelReduction.setForeground(new Color(0, 0, 0));
+
+
 
         JLabel labelPrixTotal = new JLabel("Prix total (€) :");
         champPrixTotal = new JTextField();
@@ -126,10 +128,12 @@ public class VueReservation extends JFrame {
                 Reduction reduction = hebergementDAO.getReductionParHebergement(h.getId());
                 if (reduction != null) {
                     prixParNuit = prixParNuit * (1 - reduction.getPourcentage() / 100.0);
+                    labelReduction.setForeground(new Color(0, 128, 0)); // Vert
                     labelReduction.setText(reduction.getPourcentage() + "% de réduction appliquée");
+                } else {
+                    labelReduction.setText("-");
                 }
-            } else{
-                labelReduction.setForeground(new Color(0, 0, 0));
+            } else {
                 labelReduction.setText("-");
             }
 

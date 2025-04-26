@@ -3,7 +3,7 @@ package Vue;
 import Dao.HebergementDAOImpl;
 import Modele.Hebergement;
 import Modele.Reduction;
-import Controleur.Inscription;
+import Controleur.Inscription;  // Assure-toi d'importer la classe Inscription si nécessaire
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -41,7 +41,7 @@ public class VueAccueil extends JFrame {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // --- Barre de navigation ---
+        // --- Barre de navigation en haut ---
         JPanel barreNavigation = new JPanel(new FlowLayout(FlowLayout.LEFT));
         boutonAccueil = new JButton("Accueil");
         boutonAccueil.setActionCommand("NAV_ACCUEIL");
@@ -57,7 +57,7 @@ public class VueAccueil extends JFrame {
         barreNavigation.add(Box.createHorizontalStrut(20));
         barreNavigation.add(boutonDeconnexion);
 
-        // --- Recherche ---
+        // --- Barre de recherche ---
         JPanel panelRecherche = new JPanel(new GridLayout(2, 5, 10, 10));
         panelRecherche.setBorder(BorderFactory.createTitledBorder("Rechercher un hébergement"));
 
@@ -86,13 +86,13 @@ public class VueAccueil extends JFrame {
 
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 11;
+                return column == 10;  // "Réserver" est cliquable
             }
 
             @Override
             public Class<?> getColumnClass(int columnIndex) {
                 if (columnIndex == 0) return ImageIcon.class;
-                if (columnIndex == 11) return JButton.class;
+                if (columnIndex == 9 || columnIndex == 10) return JButton.class;
                 return String.class;
             }
         };
@@ -118,19 +118,26 @@ public class VueAccueil extends JFrame {
         this.hebergementsAffiches = hebergements;
         tableModel.setRowCount(0);
 
+        // Vérification du type d'utilisateur connecté
         boolean utilisateurAncien = Inscription.getUtilisateurConnecte().getTypeUtilisateur().equals("ancien");
-        List<Reduction> reductions = utilisateurAncien ? hebergementDAO.getAllReductions() : new ArrayList<>();
+
+        // Récupérer toutes les réductions uniquement si l'utilisateur est "ancien"
+        List<Reduction> reductions = new ArrayList<>();
+        if (utilisateurAncien) {
+            reductions = hebergementDAO.getAllReductions();
+        }
 
         for (Hebergement h : hebergements) {
             double moyenne = hebergementDAO.calculerMoyenneNotes(h.getId());
             int etoiles = (int) Math.round(moyenne);
+
             h.setNoteMoyenne(moyenne);
             h.setEtoiles(etoiles);
             hebergementDAO.mettreAJourNoteEtEtoiles(h.getId(), moyenne, etoiles);
 
             String noteStr = (moyenne == 0) ? "Aucune note" : String.format("%.1f / 5", moyenne);
-            ImageIcon image = null;
 
+            ImageIcon image = null;
             try {
                 if (h.getPhoto() != null && !h.getPhoto().isEmpty()) {
                     ImageIcon icon = new ImageIcon(h.getPhoto());
@@ -141,11 +148,11 @@ public class VueAccueil extends JFrame {
                 System.out.println("Erreur de chargement de l'image pour : " + h.getNom());
             }
 
-            // Ajout de la réduction si existante
+            // Vérifier s'il y a une réduction pour cet hébergement
             String reductionStr = "Pas de réduction";
-            for (Reduction r : reductions) {
-                if (r.getHebergementId() == h.getId()) {
-                    reductionStr = r.getPourcentage() + "% - " + r.getDescription();
+            for (Reduction reduction : reductions) {
+                if (reduction.getHebergementId() == h.getId()) {
+                    reductionStr = reduction.getPourcentage() + "% - " + reduction.getDescription();
                     break;
                 }
             }
@@ -159,8 +166,8 @@ public class VueAccueil extends JFrame {
                     h.getDescription(),
                     h.getPrixParNuit() + " €",
                     noteStr,
-                    genererEtoiles(etoiles),
-                    reductionStr,
+                    genererEtoiles(h.getEtoiles()),
+                    reductionStr,  // Affichage de la réduction
                     "Réserver"
             });
         }
