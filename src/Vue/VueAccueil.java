@@ -303,6 +303,7 @@ public class VueAccueil extends JFrame {
                 fireEditingStopped();
                 int row = tableHebergements.getSelectedRow();
                 if (row >= 0 && row < hebergementsAffiches.size()) {
+                    ///  pb surement ici avec row
                     hebergementSelectionne = hebergementsAffiches.get(row);
                     if (actionListener != null) {
                         actionListener.actionPerformed(new ActionEvent(VueAccueil.this, ActionEvent.ACTION_PERFORMED, "RESERVER"));

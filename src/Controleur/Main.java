@@ -5,7 +5,6 @@ import Dao.*;
 import Modele.*;
 import Vue.*;
 import java.util.*;
-
 public class Main {
     public static void main(String[] args) {
         // Déclaration et instanciation des objets des classes DaoFactory, ProduitDAOImpl, VueProduit,

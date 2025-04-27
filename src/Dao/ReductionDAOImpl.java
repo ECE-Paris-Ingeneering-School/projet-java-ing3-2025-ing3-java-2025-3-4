@@ -42,7 +42,7 @@ public class ReductionDAOImpl implements ReductionDAO {
 
     @Override
     public void ajouter(Reduction reduction) {
-        String sql = "INSERT INTO Reductions (hebergement_id, pourcentage_reduction, description, date_debut, date_fin) VALUES (?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO Reductions (hebergement_id, pourcentage, description, date_debut, date_fin) VALUES (?, ?, ?, ?, ?)";
 
         try {
             Connection connexion = daoFactory.getConnection();

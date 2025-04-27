@@ -272,6 +272,12 @@ public class AccueilAdmin implements ActionListener {
 
             case "DECONNEXION":
                 vue.dispose();
+                vueAjoutHebergement.dispose();
+                vueAjouterChambre.dispose();
+                vueAjouterOption.dispose();;
+                vueAjouterReduction.dispose();
+                vueAssocierOptionsHebergement.dispose();
+                vueModifierSupprimerOption.dispose();
                 break;
 
             default:
