@@ -4,6 +4,8 @@ import Modele.Avis;
 import Modele.Chambre;
 import Modele.Hebergement;
 import Modele.Reduction;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.general.DefaultPieDataset;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -36,7 +38,7 @@ public class HebergementDAOImpl implements HebergementDAO {
                         resultats.getDouble("prix_par_nuit"),
                         resultats.getString("categorie"),
                         resultats.getString("photo"),
-                        resultats.getInt("nb_chambre"),  ///  bizarre?
+                        resultats.getInt("nb_chambre"),
                         resultats.getInt("place")
                 );
                 listeHebergements.add(h);
@@ -124,8 +126,8 @@ public class HebergementDAOImpl implements HebergementDAO {
             ps.setString(6, h.getCategorie());
             ps.setDouble(7, h.getPrixParNuit());
             ps.setString(8, h.getPhoto());
-            ps.setInt(9, h.getPlace()); // Nouveau champ ajouté
-            ps.setInt(10, h.getNbChambres()); // Nouveau champ ajouté
+            ps.setInt(9, h.getPlace());
+            ps.setInt(10, h.getNbChambres());
             ps.setInt(11, h.getId());
 
             ps.executeUpdate();
@@ -247,7 +249,6 @@ public class HebergementDAOImpl implements HebergementDAO {
         return reduction;
     }
 
-
     public List<Chambre> getChambresDisponibles(int hebergementId) {
         List<Chambre> chambresDisponibles = new ArrayList<>();
         try {
@@ -259,7 +260,7 @@ public class HebergementDAOImpl implements HebergementDAO {
             ResultSet rs = ps.executeQuery();
 
             while (rs.next()) {
-                boolean dispo = rs.getBoolean("dispo"); // utilise bien la colonne dispo !
+                boolean dispo = rs.getBoolean("dispo");
                 if (dispo) {
                     Chambre chambre = new Chambre(
                             rs.getInt("id_chambre"),
@@ -277,4 +278,38 @@ public class HebergementDAOImpl implements HebergementDAO {
         return chambresDisponibles;
     }
 
+    // -------------------------------
+    // Nouveautés: Statistiques JFreeChart
+    // -------------------------------
+    public DefaultPieDataset getReservationsByCategory() throws SQLException {
+        DefaultPieDataset dataset = new DefaultPieDataset();
+        String sql = "SELECT h.categorie, COUNT(r.reservation_id) as count " +
+                "FROM hebergements h " +
+                "LEFT JOIN reservations r ON h.hebergement_id = r.hebergement_id " +
+                "GROUP BY h.categorie";
+
+        try (Connection conn = daoFactory.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            while (rs.next()) {
+                dataset.setValue(rs.getString("categorie"), rs.getInt("count"));
+            }
+        }
+        return dataset;
+    }
+
+    public DefaultCategoryDataset getAdultsAndChildrenStats() throws SQLException {
+        DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        String sql = "SELECT SUM(adultes) as total_adultes, SUM(enfants) as total_enfants FROM reservations";
+
+        try (Connection conn = daoFactory.getConnection();
+             Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+            if (rs.next()) {
+                dataset.addValue(rs.getInt("total_adultes"), "Nombre", "Adultes");
+                dataset.addValue(rs.getInt("total_enfants"), "Nombre", "Enfants");
+            }
+        }
+        return dataset;
+    }
 }

@@ -11,7 +11,13 @@ import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Date;
+import java.sql.SQLException;
 import java.util.List;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.general.DefaultPieDataset;
 
 public class AccueilAdmin implements ActionListener {
 
@@ -28,6 +34,7 @@ public class AccueilAdmin implements ActionListener {
     private VueAjouterReduction vueAjouterReduction;
     private VueAjouterChambre vueAjouterChambre;
 
+    private static final String ACTION_STATS = "VOIR_STATS";
 
     public AccueilAdmin(VueAccueilAdmin vue,
                         VueAjoutHebergement vueAjoutHebergement,
@@ -37,7 +44,9 @@ public class AccueilAdmin implements ActionListener {
                         VueAjouterReduction vueAjouterReduction,
                         OptionDAOImpl optionDAO,
                         HebergementDAOImpl hebergementDAO,
-                        ReductionDAO reductionDAO, VueAjouterChambre  vueAjouterChambre, ChambreDAOImpl chambreDAO) {
+                        ReductionDAO reductionDAO,
+                        VueAjouterChambre vueAjouterChambre,
+                        ChambreDAOImpl chambreDAO) {
 
         this.vue = vue;
         this.vueAjoutHebergement = vueAjoutHebergement;
@@ -68,7 +77,6 @@ public class AccueilAdmin implements ActionListener {
         vueAssocierOptionsHebergement.ajouterEcouteur(this);
         vueAjouterReduction.ajouterEcouteur(this);
         vueAjouterChambre.ajouterEcouteur(this);
-
     }
 
     @Override
@@ -76,7 +84,6 @@ public class AccueilAdmin implements ActionListener {
         String action = e.getActionCommand();
 
         switch (action) {
-
             case "CREER_HEBERGEMENT":
                 vue.setVisible(false);
                 vueAjoutHebergement.setVisible(true);
@@ -177,8 +184,6 @@ public class AccueilAdmin implements ActionListener {
                         vueAssocierOptionsHebergement.setOptions(toutesOptions, optionsAssociees);
                     }
                 });
-
-
                 break;
 
             case "VALIDER_ASSOCIATION":
@@ -263,12 +268,18 @@ public class AccueilAdmin implements ActionListener {
                     vueAjouterChambre.afficherMessage("Erreur lors de l'ajout de la chambre.");
                 }
                 break;
+
+            case "VOIR_STATS":
+                afficherStats();
+                break;
+
             case "RETOUR_ACCUEIL":
                 vueAjoutHebergement.setVisible(false);
                 vueAjouterOption.setVisible(false);
                 vueModifierSupprimerOption.setVisible(false);
                 vueAssocierOptionsHebergement.setVisible(false);
                 vueAjouterReduction.setVisible(false);
+                vueAjouterChambre.setVisible(false);
                 vue.setVisible(true);
                 break;
 
@@ -276,7 +287,7 @@ public class AccueilAdmin implements ActionListener {
                 vue.dispose();
                 vueAjoutHebergement.dispose();
                 vueAjouterChambre.dispose();
-                vueAjouterOption.dispose();;
+                vueAjouterOption.dispose();
                 vueAjouterReduction.dispose();
                 vueAssocierOptionsHebergement.dispose();
                 vueModifierSupprimerOption.dispose();
@@ -289,6 +300,34 @@ public class AccueilAdmin implements ActionListener {
                 }
 
                 vue.afficherMessage("Action inconnue : " + action);
+        }
+    }
+
+    private void afficherStats() {
+        try {
+            JTabbedPane onglets = new JTabbedPane();
+
+            // Graphique 1: Réservations par catégorie
+            DefaultPieDataset datasetCategories = hebergementDAO.getReservationsByCategory();
+            JFreeChart chartCategories = ChartFactory.createPieChart(
+                    "Réservations par Catégorie", datasetCategories, true, true, false);
+            onglets.addTab("Par Catégorie", new ChartPanel(chartCategories));
+
+            // Graphique 2: Nombre d'adultes et d'enfants
+            DefaultCategoryDataset datasetAdultsChildren = hebergementDAO.getAdultsAndChildrenStats();
+            JFreeChart chartAdultsChildren = ChartFactory.createBarChart(
+                    "Nombre d'Adultes et d'Enfants", "Catégorie", "Nombre", datasetAdultsChildren);
+            onglets.addTab("Adultes et Enfants", new ChartPanel(chartAdultsChildren));
+
+            JFrame statsFrame = new JFrame("Statistiques Administrateur");
+            statsFrame.setContentPane(onglets);
+            statsFrame.setSize(800, 600);
+            statsFrame.setLocationRelativeTo(vue);
+            statsFrame.setVisible(true);
+
+        } catch (SQLException ex) {
+            vue.afficherMessage("Erreur lors de la récupération des données: " + ex.getMessage());
+            ex.printStackTrace();
         }
     }
 
