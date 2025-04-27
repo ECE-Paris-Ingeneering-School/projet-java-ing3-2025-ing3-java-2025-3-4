@@ -2,7 +2,6 @@ package Vue;
 
 import Controleur.Inscription;
 import Dao.AvisDAOImpl;
-import Dao.DaoFactory;
 import Dao.HebergementDAOImpl;
 import Dao.ReservationDAOImpl;
 import Modele.Avis;
@@ -10,6 +9,7 @@ import Modele.Hebergement;
 import Modele.Reservation;
 
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.sql.Date;
 import java.util.ArrayList;
@@ -20,19 +20,30 @@ public class VueMesReservations extends JFrame {
     private HebergementDAOImpl hebergementDAO;
     private AvisDAOImpl avisDAO;
 
+    // Définition des couleurs et polices communes
+    private final Color couleurPrincipale = new Color(60, 141, 188);
+    private final Color couleurSecondaire = new Color(245, 245, 245);
+    private final Color couleurFondSection = Color.WHITE;
+    private final Color couleurBordure = new Color(220, 220, 220);
+    private final Font policeNormale = new Font("Arial", Font.PLAIN, 14);
+    private final Font policeTitre = new Font("Arial", Font.BOLD, 16);
+
     public VueMesReservations(ReservationDAOImpl reservationDAO, HebergementDAOImpl hebergementDAO, AvisDAOImpl avisDAO) {
         this.reservationDAO = reservationDAO;
         this.hebergementDAO = hebergementDAO;
         this.avisDAO = avisDAO;
 
         setTitle("Mes Réservations");
-        setSize(800, 600);
+        setSize(1000, 700);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
         panelPrincipal = new JPanel();
         panelPrincipal.setLayout(new BoxLayout(panelPrincipal, BoxLayout.Y_AXIS));
+        panelPrincipal.setBackground(couleurSecondaire);
         JScrollPane scrollPane = new JScrollPane(panelPrincipal);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        scrollPane.getViewport().setBackground(couleurSecondaire);
 
         afficherReservationsUtilisateur();
 
@@ -47,20 +58,26 @@ public class VueMesReservations extends JFrame {
             if (res.getUtilisateurId() == utilisateurId) {
                 JPanel panelResa = new JPanel();
                 panelResa.setLayout(new BoxLayout(panelResa, BoxLayout.Y_AXIS));
-                panelResa.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-                panelResa.setBackground(new Color(245, 250, 255));
+                panelResa.setBorder(BorderFactory.createCompoundBorder(
+                        BorderFactory.createLineBorder(couleurBordure, 1),
+                        BorderFactory.createEmptyBorder(15, 15, 15, 15)
+                ));
+                panelResa.setBackground(couleurFondSection);
 
                 Hebergement hebergement = hebergementDAO.chercher(res.getHebergementId());
                 String nomHebergement = (hebergement != null) ? hebergement.getNom() : "Hébergement inconnu";
 
-                JLabel titre = new JLabel("🏡 " + nomHebergement);
-                titre.setFont(new Font("Arial", Font.BOLD, 16));
+                JLabel titre = new JLabel(nomHebergement);
+                titre.setFont(policeTitre);
+                titre.setForeground(couleurPrincipale);
                 panelResa.add(titre);
+
+                panelResa.add(Box.createRigidArea(new Dimension(0, 10)));
 
                 JTextArea infos = new JTextArea();
                 infos.setEditable(false);
-                infos.setBackground(new Color(245, 250, 255));
-                infos.setFont(new Font("SansSerif", Font.PLAIN, 13));
+                infos.setBackground(couleurFondSection);
+                infos.setFont(policeNormale);
                 infos.setText(
                         "Date d'arrivée : " + res.getDateArrivee() +
                                 "\nDate de départ : " + res.getDateDepart() +
@@ -69,32 +86,50 @@ public class VueMesReservations extends JFrame {
                                 "\nPrix total : " + res.getPrixTotal() + " €" +
                                 "\nStatut : " + res.getStatut()
                 );
+                infos.setBorder(null);
                 panelResa.add(infos);
 
-                // Panel avis
-                JPanel panelAvisNote = new JPanel(new BorderLayout());
-                panelAvisNote.setBorder(BorderFactory.createTitledBorder("Votre avis"));
-                panelAvisNote.setBackground(new Color(255, 255, 255));
+                panelResa.add(Box.createRigidArea(new Dimension(0, 10)));
 
+                // Panel Avis et Note
+                JPanel panelAvisNote = new JPanel(new BorderLayout(10, 10));
+                panelAvisNote.setBackground(couleurFondSection);
+                panelAvisNote.setBorder(BorderFactory.createTitledBorder(
+                        BorderFactory.createLineBorder(couleurBordure, 1),
+                        "Votre avis",
+                        TitledBorder.DEFAULT_JUSTIFICATION,
+                        TitledBorder.DEFAULT_POSITION,
+                        policeTitre,
+                        couleurPrincipale
+                ));
+
+                // Zone de texte pour commentaire
                 JTextArea champAvis = new JTextArea(3, 30);
                 champAvis.setLineWrap(true);
                 champAvis.setWrapStyleWord(true);
+                champAvis.setFont(policeNormale);
                 JScrollPane scrollAvis = new JScrollPane(champAvis);
+                scrollAvis.setBorder(BorderFactory.createLineBorder(couleurBordure, 1));
                 panelAvisNote.add(scrollAvis, BorderLayout.CENTER);
 
-                // Panel note
-                JPanel panelNote = new JPanel(new FlowLayout(FlowLayout.LEFT));
+                // Sélecteur de note
+                JPanel panelNote = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 5));
+                panelNote.setBackground(couleurFondSection);
                 JLabel labelNote = new JLabel("Note : ");
+                labelNote.setFont(policeNormale);
                 JComboBox<Integer> comboNote = new JComboBox<>(new Integer[]{1, 2, 3, 4, 5});
+                comboNote.setFont(policeNormale);
                 panelNote.add(labelNote);
                 panelNote.add(comboNote);
                 panelAvisNote.add(panelNote, BorderLayout.NORTH);
 
-                // Bouton pour envoyer l'avis
+                // Bouton pour entrer l'avis
                 JButton boutonAvis = new JButton("Entrer l'avis");
-                boutonAvis.setBackground(new Color(70, 130, 180));
+                boutonAvis.setBackground(couleurPrincipale);
                 boutonAvis.setForeground(Color.WHITE);
-
+                boutonAvis.setFont(policeNormale);
+                boutonAvis.setFocusPainted(false);
+                boutonAvis.setCursor(new Cursor(Cursor.HAND_CURSOR));
                 boutonAvis.addActionListener(e -> {
                     int note = (int) comboNote.getSelectedItem();
                     String commentaire = champAvis.getText().trim();
@@ -126,7 +161,7 @@ public class VueMesReservations extends JFrame {
                 panelResa.setAlignmentX(Component.LEFT_ALIGNMENT);
 
                 panelPrincipal.add(panelResa);
-                panelPrincipal.add(Box.createRigidArea(new Dimension(0, 15))); // espace entre les réservations
+                panelPrincipal.add(Box.createRigidArea(new Dimension(0, 20))); // Espace entre les réservations
             }
         }
     }

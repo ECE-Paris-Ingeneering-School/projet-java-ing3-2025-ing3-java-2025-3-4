@@ -6,9 +6,10 @@ import Modele.Chambre;
 import Modele.Hebergement;
 import Modele.Option;
 import Modele.Reduction;
-import Controleur.Inscription;  // Assure-toi d'importer la classe Inscription si nécessaire
+import Controleur.Inscription;
 
 import javax.swing.*;
+import javax.swing.border.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -30,8 +31,8 @@ public class VueAccueil extends JFrame {
     private JButton boutonMesReservations;
     private JButton boutonDeconnexion;
 
-    private JPanel panelOptions; // --> Nouveau : pour afficher les cases à cocher des options
-    private List<JCheckBox> checkBoxesOptions; // --> Nouveau : stocke toutes les cases à cocher
+    private JPanel panelOptions;
+    private List<JCheckBox> checkBoxesOptions;
 
     private ActionListener actionListener;
 
@@ -39,108 +40,184 @@ public class VueAccueil extends JFrame {
     private Hebergement hebergementSelectionne;
 
     private HebergementDAOImpl hebergementDAO;
-    private OptionDAOImpl optionDAO; // --> Nouveau : pour récupérer les options
+    private OptionDAOImpl optionDAO;
+
+    private final Color couleurPrincipale = new Color(60, 141, 188);
+    private final Color couleurSecondaire = new Color(245, 245, 245);
+    private final Color couleurBordure = new Color(220, 220, 220);
+    private final Font policeNormale = new Font("Arial", Font.PLAIN, 14);
+    private final Font policeTitre = new Font("Arial", Font.BOLD, 16);
 
     public VueAccueil(HebergementDAOImpl hebergementDAO, OptionDAOImpl optionDAO) {
         this.hebergementDAO = hebergementDAO;
         this.optionDAO = optionDAO;
         this.checkBoxesOptions = new ArrayList<>();
+
         setTitle("Accueil - Rechercher un Hébergement");
-        setSize(1300, 600);
+        setSize(1300, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // --- Barre de navigation en haut ---
-        JPanel barreNavigation = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        boutonAccueil = new JButton("Accueil");
-        boutonAccueil.setActionCommand("NAV_ACCUEIL");
+        JPanel panelPrincipal = new JPanel(new BorderLayout(10, 10));
+        panelPrincipal.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
+        setContentPane(panelPrincipal);
 
-        boutonMesReservations = new JButton("Mes Réservations");
-        boutonMesReservations.setActionCommand("NAV_MES_RESERVATIONS");
+        JPanel barreNavigation = new JPanel();
+        barreNavigation.setLayout(new BoxLayout(barreNavigation, BoxLayout.X_AXIS));
+        barreNavigation.setBackground(couleurPrincipale);
+        barreNavigation.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        boutonDeconnexion = new JButton("Déconnexion");
-        boutonDeconnexion.setActionCommand("DECONNEXION");
+        boutonAccueil = createNavButton("Accueil", "NAV_ACCUEIL");
+        boutonMesReservations = createNavButton("Mes Réservations", "NAV_MES_RESERVATIONS");
+        boutonDeconnexion = createNavButton("Déconnexion", "DECONNEXION");
 
         barreNavigation.add(boutonAccueil);
+        barreNavigation.add(Box.createHorizontalStrut(15));
         barreNavigation.add(boutonMesReservations);
-        barreNavigation.add(Box.createHorizontalStrut(20));
+        barreNavigation.add(Box.createHorizontalGlue());
         barreNavigation.add(boutonDeconnexion);
 
-        // --- Barre de recherche ---
-        JPanel panelRecherche = new JPanel(new GridLayout(2, 5, 10, 10));
-        panelRecherche.setBorder(BorderFactory.createTitledBorder("Rechercher un hébergement"));
+        JPanel panelRecherche = new JPanel(new GridBagLayout());
+        panelRecherche.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createTitledBorder(
+                        BorderFactory.createLineBorder(couleurBordure, 1),
+                        "Rechercher un hébergement",
+                        TitledBorder.DEFAULT_JUSTIFICATION,
+                        TitledBorder.DEFAULT_POSITION,
+                        policeTitre,
+                        couleurPrincipale
+                ),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        panelRecherche.setBackground(Color.WHITE);
 
-        champLieu = new JTextField();
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.insets = new Insets(5, 5, 5, 10);
+
+        JLabel lblLieu = createLabel("Lieu :");
+        JLabel lblPersonnes = createLabel("Personnes :");
+        JLabel lblDateDebut = createLabel("Date d'arrivée :");
+        JLabel lblDateFin = createLabel("Date de départ :");
+
+        champLieu = createTextField();
         spinnerPersonnes = new JSpinner(new SpinnerNumberModel(1, 1, 20, 1));
-        champDateDebut = new JTextField("JJ/MM/AAAA");
-        champDateFin = new JTextField("JJ/MM/AAAA");
+        spinnerPersonnes.setFont(policeNormale);
+
+        champDateDebut = createTextField();
+        champDateDebut.setText("JJ/MM/AAAA");
+
+        champDateFin = createTextField();
+        champDateFin.setText("JJ/MM/AAAA");
+
         boutonRecherche = new JButton("Rechercher");
+        boutonRecherche.setFont(policeNormale);
+        boutonRecherche.setBackground(couleurPrincipale);
+        boutonRecherche.setForeground(Color.WHITE);
+        boutonRecherche.setFocusPainted(false);
+        boutonRecherche.setCursor(new Cursor(Cursor.HAND_CURSOR));
         boutonRecherche.setActionCommand("RECHERCHER");
 
-        panelRecherche.add(new JLabel("Lieu :"));
-        panelRecherche.add(new JLabel("Personnes :"));
-        panelRecherche.add(new JLabel("Date d'arrivée :"));
-        panelRecherche.add(new JLabel("Date de départ :"));
-        panelRecherche.add(new JLabel(""));
+        gbc.gridx = 0; gbc.gridy = 0;
+        panelRecherche.add(lblLieu, gbc);
+        gbc.gridx = 1;
+        panelRecherche.add(champLieu, gbc);
+        gbc.gridx = 2;
+        panelRecherche.add(lblPersonnes, gbc);
+        gbc.gridx = 3;
+        panelRecherche.add(spinnerPersonnes, gbc);
+        gbc.gridx = 0; gbc.gridy = 1;
+        panelRecherche.add(lblDateDebut, gbc);
+        gbc.gridx = 1;
+        panelRecherche.add(champDateDebut, gbc);
+        gbc.gridx = 2;
+        panelRecherche.add(lblDateFin, gbc);
+        gbc.gridx = 3;
+        panelRecherche.add(champDateFin, gbc);
+        gbc.gridx = 4; gbc.gridy = 0; gbc.gridheight = 2; gbc.fill = GridBagConstraints.BOTH;
+        panelRecherche.add(boutonRecherche, gbc);
 
-        panelRecherche.add(champLieu);
-        panelRecherche.add(spinnerPersonnes);
-        panelRecherche.add(champDateDebut);
-        panelRecherche.add(champDateFin);
-        panelRecherche.add(boutonRecherche);
-
-        // --- Zone de filtres par options ---
         panelOptions = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        panelOptions.setBorder(BorderFactory.createTitledBorder("Filtrer par options"));
+        panelOptions.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createTitledBorder(
+                        BorderFactory.createLineBorder(couleurBordure, 1),
+                        "Filtrer par options",
+                        TitledBorder.DEFAULT_JUSTIFICATION,
+                        TitledBorder.DEFAULT_POSITION,
+                        policeTitre,
+                        couleurPrincipale
+                ),
+                BorderFactory.createEmptyBorder(10, 10, 10, 10)
+        ));
+        panelOptions.setBackground(Color.WHITE);
 
         chargerOptionsDisponibles();
-
         JScrollPane scrollPaneOptions = new JScrollPane(panelOptions);
         scrollPaneOptions.setPreferredSize(new Dimension(1400, 80));
+        scrollPaneOptions.setBorder(null);
 
-        // --- Tableau des hébergements ---
         tableModel = new DefaultTableModel(
-                new Object[]{"Photo", "Nom", "Ville", "Pays", "Catégorie", "Description", "Prix (€)", "Note Moyenne", "Étoiles", "Réduction", "Réserver"}, 0) {
+                new Object[]{"Photo", "Nom", "Lieu", "Description", "Prix (€)", "Note Moyenne", "Réduction", "Réserver"}, 0) {
 
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column == 10;  // "Réserver" est cliquable
+                return column == 7;
             }
 
             @Override
             public Class<?> getColumnClass(int columnIndex) {
                 if (columnIndex == 0) return ImageIcon.class;
-                if (columnIndex == 9 || columnIndex == 10) return JButton.class;
+                if (columnIndex == 7) return JButton.class;
                 return String.class;
             }
         };
 
         tableHebergements = new JTable(tableModel);
         tableHebergements.setRowHeight(80);
-        JScrollPane scrollPaneTable = new JScrollPane(tableHebergements);
+        tableHebergements.setFont(policeNormale);
+        tableHebergements.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
+        tableHebergements.getTableHeader().setBackground(couleurSecondaire);
+        tableHebergements.setSelectionBackground(new Color(230, 240, 250));
 
-        tableHebergements.getColumn("Réserver").setCellRenderer(new ButtonRenderer());
+
+        tableHebergements.getColumnModel().getColumn(0).setPreferredWidth(120); // Photo
+        tableHebergements.getColumnModel().getColumn(1).setPreferredWidth(200); // Nom
+        tableHebergements.getColumnModel().getColumn(2).setPreferredWidth(160); // Lieu
+        tableHebergements.getColumnModel().getColumn(3).setPreferredWidth(300); // Description
+        tableHebergements.getColumnModel().getColumn(4).setPreferredWidth(90); // Prix
+        tableHebergements.getColumnModel().getColumn(5).setPreferredWidth(110); // Note Moyenne
+        tableHebergements.getColumnModel().getColumn(6).setPreferredWidth(150); // Réduction
+        tableHebergements.getColumnModel().getColumn(7).setPreferredWidth(100); // Réserver
+
+        JScrollPane scrollPaneTable = new JScrollPane(tableHebergements);
+        scrollPaneTable.setBorder(BorderFactory.createLineBorder(couleurBordure));
+        scrollPaneTable.getViewport().setBackground(Color.WHITE);
+
+        ButtonRenderer buttonRenderer = new ButtonRenderer();
+        buttonRenderer.setBackground(couleurPrincipale);
+        buttonRenderer.setForeground(Color.WHITE);
+        buttonRenderer.setFont(policeNormale);
+        tableHebergements.getColumn("Réserver").setCellRenderer(buttonRenderer);
         tableHebergements.getColumn("Réserver").setCellEditor(new ButtonEditor(new JCheckBox()));
 
-        // --- Layout global ---
-        JPanel panelHaut = new JPanel(new BorderLayout());
+        JPanel panelHaut = new JPanel(new BorderLayout(0, 10));
         panelHaut.add(barreNavigation, BorderLayout.NORTH);
-        panelHaut.add(panelRecherche, BorderLayout.SOUTH);
+        panelHaut.add(panelRecherche, BorderLayout.CENTER);
 
-        JPanel panelPrincipal = new JPanel(new BorderLayout());
-        panelPrincipal.add(scrollPaneOptions, BorderLayout.NORTH);
-        panelPrincipal.add(scrollPaneTable, BorderLayout.CENTER);
+        JPanel panelCentre = new JPanel(new BorderLayout());
+        panelCentre.add(scrollPaneOptions, BorderLayout.NORTH);
+        panelCentre.add(scrollPaneTable, BorderLayout.CENTER);
 
-        setLayout(new BorderLayout());
-        add(panelHaut, BorderLayout.NORTH);
-        add(panelPrincipal, BorderLayout.CENTER);
+        panelPrincipal.add(panelHaut, BorderLayout.NORTH);
+        panelPrincipal.add(panelCentre, BorderLayout.CENTER);
     }
 
     private void chargerOptionsDisponibles() {
-        List<Option> options = optionDAO.getAll(); // --> récupère toutes les options existantes
+        List<Option> options = optionDAO.getAll();
         for (Option opt : options) {
             JCheckBox checkBox = new JCheckBox(opt.getNomOption());
-            checkBox.putClientProperty("option", opt); // Associe l'objet Option à la case
+            checkBox.setFont(policeNormale);
+            checkBox.putClientProperty("option", opt);
             panelOptions.add(checkBox);
             checkBoxesOptions.add(checkBox);
         }
@@ -156,6 +233,31 @@ public class VueAccueil extends JFrame {
         return optionsSelectionnees;
     }
 
+    private JButton createNavButton(String text, String action) {
+        JButton button = new JButton(text);
+        button.setFont(policeNormale);
+        button.setActionCommand(action);
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        button.setBackground(couleurPrincipale);
+        button.setForeground(Color.WHITE);
+        button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        return button;
+    }
+
+    private JLabel createLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(policeNormale);
+        return label;
+    }
+
+    private JTextField createTextField() {
+        JTextField textField = new JTextField();
+        textField.setFont(policeNormale);
+        textField.setMargin(new Insets(5, 5, 5, 5));
+        return textField;
+    }
+
     public void afficherListeHebergements(ArrayList<Hebergement> hebergements) {
         this.hebergementsAffiches = hebergements;
         tableModel.setRowCount(0);
@@ -168,11 +270,9 @@ public class VueAccueil extends JFrame {
             if (h.getCategorie().equalsIgnoreCase("hotel")) {
                 List<Chambre> chambresDisponibles = hebergementDAO.getChambresDisponibles(h.getId());
                 int capaciteTotale = 0;
-
                 for (Chambre chambre : chambresDisponibles) {
                     capaciteTotale += chambre.getPlaceMax();
                 }
-
                 if (capaciteTotale >= nbPersonnes) {
                     peutAccueillir = true;
                 }
@@ -184,13 +284,8 @@ public class VueAccueil extends JFrame {
 
             if (peutAccueillir) {
                 double moyenne = hebergementDAO.calculerMoyenneNotes(h.getId());
-                int etoiles = (int) Math.round(moyenne);
-
-                h.setNoteMoyenne(moyenne);
-                h.setEtoiles(etoiles);
-                hebergementDAO.mettreAJourNoteEtEtoiles(h.getId(), moyenne, etoiles);
-
                 String noteStr = (moyenne == 0) ? "Aucune note" : String.format("%.1f / 5", moyenne);
+                h.setNoteMoyenne(moyenne);
 
                 ImageIcon image = null;
                 try {
@@ -203,7 +298,6 @@ public class VueAccueil extends JFrame {
                     System.out.println("Erreur de chargement de l'image pour : " + h.getNom());
                 }
 
-                // Récupération de la réduction si utilisateur ancien
                 String reductionStr = "Pas de réduction";
                 if (Inscription.getUtilisateurConnecte() != null &&
                         "ancien".equals(Inscription.getUtilisateurConnecte().getTypeUtilisateur())) {
@@ -213,33 +307,27 @@ public class VueAccueil extends JFrame {
                     }
                 }
 
-                tableModel.addRow(new Object[]{
+                String lieu = h.getVille() + ", " + h.getPays();  // Combinaison de la ville et du pays
+
+                tableModel.addRow(new Object[] {
                         image,
                         h.getNom(),
-                        h.getVille(),
-                        h.getPays(),
-                        h.getCategorie(),
+                        lieu,  // Lieu combiné
                         h.getDescription(),
                         h.getPrixParNuit() + " €",
                         noteStr,
-                        genererEtoiles(h.getEtoiles()),
                         reductionStr,
                         "Réserver"
                 });
             }
         }
 
-        tableHebergements.getColumn("Réserver").setCellRenderer(new ButtonRenderer());
+        ButtonRenderer buttonRenderer = new ButtonRenderer();
+        buttonRenderer.setBackground(couleurPrincipale);
+        buttonRenderer.setForeground(Color.WHITE);
+        buttonRenderer.setFont(policeNormale);
+        tableHebergements.getColumn("Réserver").setCellRenderer(buttonRenderer);
         tableHebergements.getColumn("Réserver").setCellEditor(new ButtonEditor(new JCheckBox()));
-    }
-
-
-    private String genererEtoiles(int etoilesPleines) {
-        StringBuilder etoiles = new StringBuilder();
-        for (int i = 0; i < 5; i++) {
-            etoiles.append(i < etoilesPleines ? "★" : "☆");
-        }
-        return etoiles.toString();
     }
 
     public String getLieuRecherche() {
@@ -279,6 +367,12 @@ public class VueAccueil extends JFrame {
     class ButtonRenderer extends JButton implements javax.swing.table.TableCellRenderer {
         public ButtonRenderer() {
             setOpaque(true);
+            setBackground(couleurPrincipale);
+            setForeground(Color.WHITE);
+            setFocusPainted(false);
+            setBorderPainted(true);
+            setCursor(new Cursor(Cursor.HAND_CURSOR));
+            setFont(policeNormale);
         }
 
         @Override
@@ -299,11 +393,17 @@ public class VueAccueil extends JFrame {
             super(checkBox);
             button = new JButton();
             button.setOpaque(true);
+            button.setBackground(couleurPrincipale);
+            button.setForeground(Color.WHITE);
+            button.setFocusPainted(false);
+            button.setBorderPainted(true);
+            button.setCursor(new Cursor(Cursor.HAND_CURSOR));
+            button.setFont(policeNormale);
+
             button.addActionListener(e -> {
                 fireEditingStopped();
                 int row = tableHebergements.getSelectedRow();
                 if (row >= 0 && row < hebergementsAffiches.size()) {
-                    ///  pb surement ici avec row
                     hebergementSelectionne = hebergementsAffiches.get(row);
                     if (actionListener != null) {
                         actionListener.actionPerformed(new ActionEvent(VueAccueil.this, ActionEvent.ACTION_PERFORMED, "RESERVER"));

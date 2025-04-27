@@ -70,17 +70,22 @@ public class Reserver implements ActionListener {
     }
 
     private void lancerVuePaiement() {
-        dateArrivee = vueReservation.getDateArrivee();
-        dateDepart = vueReservation.getDateDepart();
-        nbAdultes = vueReservation.getNbAdultes();
-        nbEnfants = vueReservation.getNbEnfants();
-        prixTotal = vueReservation.getPrixTotal();
+        // Si la vuePaiement n'est pas encore initialisée, on la crée
+        if (vuePaiement == null) {
+            dateArrivee = vueReservation.getDateArrivee();
+            dateDepart = vueReservation.getDateDepart();
+            nbAdultes = vueReservation.getNbAdultes();
+            nbEnfants = vueReservation.getNbEnfants();
+            prixTotal = vueReservation.getPrixTotal();
 
-        Hebergement hebergement = vueAccueil.getHebergementSelectionne();
-        User user = Inscription.getUtilisateurConnecte();
+            Hebergement hebergement = vueAccueil.getHebergementSelectionne();
+            User user = Inscription.getUtilisateurConnecte();
 
-        vuePaiement = new VuePaiement(user, hebergement, dateArrivee, dateDepart, prixTotal);
-        vuePaiement.ajouterEcouteur(this);
+            vuePaiement = new VuePaiement(user, hebergement, dateArrivee, dateDepart, prixTotal);
+            vuePaiement.ajouterEcouteur(this);
+        }
+
+        // Caché la vueReservation et afficher la vuePaiement
         vueReservation.setVisible(false);
         vuePaiement.setVisible(true);
     }

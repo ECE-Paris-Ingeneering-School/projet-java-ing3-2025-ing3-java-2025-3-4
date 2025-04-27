@@ -7,6 +7,7 @@ import Modele.Option;
 import Modele.Reduction;
 import Vue.*;
 
+import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.sql.Date;
@@ -157,6 +158,7 @@ public class AccueilAdmin implements ActionListener {
 
             case "ASSOCIER_OPTION":
                 vue.setVisible(false);
+                vueAssocierOptionsHebergement.setVisible(true);
                 List<Hebergement> hebergements = hebergementDAO.getAll();
                 vueAssocierOptionsHebergement.setHebergements(hebergements);
 
@@ -176,7 +178,7 @@ public class AccueilAdmin implements ActionListener {
                     }
                 });
 
-                vueAssocierOptionsHebergement.setVisible(true);
+
                 break;
 
             case "VALIDER_ASSOCIATION":
@@ -281,6 +283,11 @@ public class AccueilAdmin implements ActionListener {
                 break;
 
             default:
+                // fix bug vue_associer_option_hebergemennt
+                if (e.getSource() instanceof JComboBox) {
+                    return;
+                }
+
                 vue.afficherMessage("Action inconnue : " + action);
         }
     }

@@ -7,7 +7,6 @@ import Modele.Reduction;
 import Modele.Chambre;
 
 import javax.swing.*;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.ActionListener;
 import java.util.Calendar;
@@ -34,54 +33,98 @@ public class VueReservation extends JFrame {
     private VueAccueil vueAccueil;
     private HebergementDAOImpl hebergementDAO;
 
+    // Couleurs et polices
+    private final Color couleurPrincipale = new Color(60, 141, 188); // Couleur bleue
+    private final Color couleurFond = new Color(245, 245, 245); // Fond clair
+    private final Font policeNormale = new Font("Arial", Font.PLAIN, 18); // Police plus grande
+    private final Font policeTitre = new Font("Arial", Font.BOLD, 20); // Titre en gras et plus grand
+
     public VueReservation(VueAccueil vueAccueil, HebergementDAOImpl hebergementDAO) {
         this.vueAccueil = vueAccueil;
         this.hebergementDAO = hebergementDAO;
 
         setTitle("Réservation");
-        setSize(500, 500);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(600, 600); // Taille augmentée pour plus d'espace
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         setLocationRelativeTo(null);
+        getContentPane().setBackground(couleurFond); // Fond clair
         setLayout(new BorderLayout());
 
-        JPanel panel = new JPanel(new GridLayout(11, 2, 10, 10));
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+                // Quand la fenêtre de réservation est fermée, rediriger vers l'accueil
+                vueAccueil.setVisible(true); // Afficher la fenêtre d'accueil
+                setVisible(false); // Cacher la fenêtre de réservation
+            }
+        });
 
+        JPanel panel = new JPanel(new GridLayout(12, 2, 10, 10));
+        panel.setOpaque(false); // Pour que le fond soit transparent
+
+        // Titre
+        JLabel titreLabel = new JLabel("Formulaire de réservation");
+        titreLabel.setFont(policeTitre);
+        titreLabel.setForeground(couleurPrincipale); // Couleur bleue
+        titreLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        titreLabel.setBorder(BorderFactory.createEmptyBorder(20, 10, 10, 10)); // Marge autour
+        add(titreLabel, BorderLayout.NORTH); // Ajout du titre en haut
+
+        // Champs
         JLabel labelDateArrivee = new JLabel("Date d'arrivée :");
+        labelDateArrivee.setFont(policeNormale);
         dateArriveeSpinner = createDateSpinner(0);
 
         JLabel labelDateDepart = new JLabel("Date de départ :");
+        labelDateDepart.setFont(policeNormale);
         dateDepartSpinner = createDateSpinner(1);
 
         JLabel labelNbAdultes = new JLabel("Nombre d'adultes :");
+        labelNbAdultes.setFont(policeNormale);
         spinnerNbAdultes = new JSpinner(new SpinnerNumberModel(1, 1, 100, 1));
 
         JLabel labelNbEnfants = new JLabel("Nombre d'enfants :");
+        labelNbEnfants.setFont(policeNormale);
         spinnerNbEnfants = new JSpinner(new SpinnerNumberModel(0, 0, 100, 1));
 
         JLabel labelNbChambres = new JLabel("Nombre de chambres :");
+        labelNbChambres.setFont(policeNormale);
         spinnerNbChambres = new JSpinner(new SpinnerNumberModel(1, 1, 100, 1));
         labelChambresFixes = new JLabel("");
         labelChambresFixes.setVisible(false);
 
         JLabel labelPrixParNuit = new JLabel("Prix par nuit (€) :");
+        labelPrixParNuit.setFont(policeNormale);
         champPrixParNuit = new JTextField();
         champPrixParNuit.setEditable(false);
+        champPrixParNuit.setFont(policeNormale);
 
         JLabel labelReductionTitre = new JLabel("Réduction appliquée :");
+        labelReductionTitre.setFont(policeNormale);
         labelReduction = new JLabel("");
         labelReduction.setForeground(new Color(0, 0, 0));
 
         JLabel labelPrixTotal = new JLabel("Prix total (€) :");
+        labelPrixTotal.setFont(policeNormale);
         champPrixTotal = new JTextField();
         champPrixTotal.setEditable(false);
+        champPrixTotal.setFont(policeNormale);
 
         labelMessage = new JLabel("");
         labelMessage.setHorizontalAlignment(SwingConstants.CENTER);
         labelMessage.setForeground(Color.RED);
+        labelMessage.setFont(policeNormale);
 
         btnValider = new JButton("Valider la réservation");
         btnValider.setActionCommand("VALIDER_RESERVATION");
+        btnValider.setFont(new Font("Arial", Font.BOLD, 16));
+        btnValider.setBackground(couleurPrincipale);
+        btnValider.setForeground(Color.WHITE);
+        btnValider.setPreferredSize(new Dimension(180, 40));
+        btnValider.setFocusPainted(false);
+        btnValider.setCursor(new Cursor(Cursor.HAND_CURSOR));
 
+        // Ajouter les composants
         panel.add(labelDateArrivee); panel.add(dateArriveeSpinner);
         panel.add(labelDateDepart); panel.add(dateDepartSpinner);
         panel.add(labelNbAdultes); panel.add(spinnerNbAdultes);
@@ -95,13 +138,7 @@ public class VueReservation extends JFrame {
 
         add(panel, BorderLayout.CENTER);
 
-        ChangeListener recalculListener = e -> calculerPrixTotal();
-        dateArriveeSpinner.addChangeListener(recalculListener);
-        dateDepartSpinner.addChangeListener(recalculListener);
-        spinnerNbAdultes.addChangeListener(recalculListener);
-        spinnerNbEnfants.addChangeListener(recalculListener);
-        spinnerNbChambres.addChangeListener(recalculListener);
-
+        // Calculer le prix dès que les valeurs changent
         SwingUtilities.invokeLater(this::calculerPrixTotal);
     }
 
@@ -181,54 +218,37 @@ public class VueReservation extends JFrame {
 
                 int nbChambresDemandees = (int) spinnerNbChambres.getValue();
                 if (nbChambresDemandees > nbChambresDispo) {
-                    labelMessage.setText("Pas assez de chambres disponibles.");
-                    champPrixTotal.setText("");
-                    return;
+                    nbChambresDemandees = nbChambresDispo;
+                    spinnerNbChambres.setValue(nbChambresDemandees);
                 }
 
-                int capaciteTotale = 0;
-                for (int i = 0; i < nbChambresDemandees && i < chambresDisponibles.size(); i++) {
-                    capaciteTotale += chambresDisponibles.get(i).getPlaceMax();
-                }
-
-                if (capaciteTotale < nbPersonnes) {
-                    labelMessage.setText("La capacité des chambres sélectionnées est insuffisante.");
-                    champPrixTotal.setText("");
-                    return;
-                }
-
-                prixTotal = prixParNuit * nombreNuits * nbChambresDemandees;
-
+                prixTotal = prixParNuit * nbChambresDemandees * nombreNuits;
             } else {
+                prixTotal = prixParNuit * nombreNuits * nbPersonnes;
                 spinnerNbChambres.setVisible(false);
-                spinnerNbChambres.setEnabled(false);
-                labelChambresFixes.setVisible(true);
-                labelChambresFixes.setText("Logement avec " + h.getNbChambres() + " chambre(s)");
-
-                prixTotal = prixParNuit * nombreNuits;
             }
 
             champPrixTotal.setText(String.format(Locale.US, "%.2f", prixTotal));
             labelMessage.setText("");
-
         } catch (Exception e) {
             e.printStackTrace();
+            champPrixParNuit.setText("");
             champPrixTotal.setText("");
-            labelMessage.setText("Erreur lors du calcul.");
-            labelReduction.setText("");
+            labelMessage.setText("Erreur de calcul des prix.");
         }
     }
 
     private Date resetTime(Date date) {
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(date);
-        cal.set(Calendar.HOUR_OF_DAY, 0);
-        cal.set(Calendar.MINUTE, 0);
-        cal.set(Calendar.SECOND, 0);
-        cal.set(Calendar.MILLISECOND, 0);
-        return cal.getTime();
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTime(date);
+        calendar.set(Calendar.HOUR_OF_DAY, 0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        calendar.set(Calendar.MILLISECOND, 0);
+        return calendar.getTime();
     }
 
+    // Autres méthodes pour récupérer les valeurs (non modifiées)
     public Date getDateArrivee() {
         return (Date) dateArriveeSpinner.getValue();
     }
