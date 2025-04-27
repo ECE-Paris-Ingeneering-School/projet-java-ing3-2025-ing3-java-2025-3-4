@@ -12,6 +12,7 @@ public class VueAccueilAdmin extends JFrame {
     private JButton boutonAssocierOption;
     private JButton boutonModifierSupprimerOption;
     private JButton boutonAjouterReduction;
+    private JButton boutonAjouterChambre; // Nouveau bouton ajouté
     private JButton boutonDeconnexion;
 
     // Couleurs et polices pour un style cohérent
@@ -23,7 +24,7 @@ public class VueAccueilAdmin extends JFrame {
 
     public VueAccueilAdmin() {
         setTitle("Accueil Admin - Gestion");
-        setSize(450, 400);
+        setSize(450, 500); // Taille ajustée pour tenir compte du bouton supplémentaire
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
         setResizable(false);
@@ -56,6 +57,7 @@ public class VueAccueilAdmin extends JFrame {
         boutonAssocierOption = createButton("Associer une Option", "ASSOCIER_OPTION");
         boutonModifierSupprimerOption = createButton("Modifier/Supprimer une Option", "MODIFIER_SUPPRIMER_OPTION");
         boutonAjouterReduction = createButton("Ajouter une Réduction", "AJOUTER_REDUCTION");
+        boutonAjouterChambre = createButton("Ajouter une Chambre", "AJOUTER_CHAMBRE"); // Nouveau bouton ajouté
 
         // Bouton de déconnexion avec style spécial
         boutonDeconnexion = new JButton("Déconnexion");
@@ -78,6 +80,8 @@ public class VueAccueilAdmin extends JFrame {
         panelBoutons.add(boutonModifierSupprimerOption);
         panelBoutons.add(Box.createRigidArea(new Dimension(0, 10)));
         panelBoutons.add(boutonAjouterReduction);
+        panelBoutons.add(Box.createRigidArea(new Dimension(0, 10)));
+        panelBoutons.add(boutonAjouterChambre); // Ajout du nouveau bouton ici
         panelBoutons.add(Box.createRigidArea(new Dimension(0, 20)));
         panelBoutons.add(boutonDeconnexion);
 
@@ -106,6 +110,7 @@ public class VueAccueilAdmin extends JFrame {
         boutonAssocierOption.addActionListener(listener);
         boutonModifierSupprimerOption.addActionListener(listener);
         boutonAjouterReduction.addActionListener(listener);
+        boutonAjouterChambre.addActionListener(listener); // Ajout de l'écouteur ici
         boutonDeconnexion.addActionListener(listener);
     }
 
