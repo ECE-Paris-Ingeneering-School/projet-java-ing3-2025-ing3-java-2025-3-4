@@ -1,0 +1,168 @@
+package Controleur;
+
+import Dao.*;
+import Modele.*;
+import Vue.*;
+
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+
+/**
+ * La classe Accueil gère l'interface d'accueil de l'application.
+ * Elle permet de filtrer les hébergements, de gérer les réservations et de naviguer entre les différentes vues.
+ */
+public class Accueil implements ActionListener {
+
+    private VueAccueil vueAccueil;
+    private HebergementDAOImpl hebergementDAO;
+    private VueConnexion vueConnexion;
+    private VueReservation vueReservation;
+    private ReservationDAOImpl reservationDAO;
+    private PaiementDAOImpl paiementDAO;
+    private AvisDAOImpl avisDAO;
+    private UserDAOImpl userDAO;
+    private ChambreDAOImpl chambreDAO;
+    private OptionDAOImpl optionDAO;
+    private Reserver reserver;
+    private ArrayList<Hebergement> hebergementsAffiches;
+
+    /**
+     * Constructeur de la classe Accueil.
+     * Initialise les vues et les DAO nécessaires pour l'accueil.
+     *
+     * @param vueAccueil La vue d'accueil.
+     * @param hebergementDAO Le DAO pour les hébergements.
+     * @param vueConnexion La vue de connexion.
+     * @param reserver Le contrôleur de réservation.
+     * @param vueReservation La vue de réservation.
+     * @param reservationDAO Le DAO pour les réservations.
+     * @param paiementDAO Le DAO pour les paiements.
+     * @param avisDAO Le DAO pour les avis.
+     * @param userDAO Le DAO pour les utilisateurs.
+     * @param chambreDAO Le DAO pour les chambres.
+     * @param optionDAO Le DAO pour les options.
+     */
+    public Accueil(VueAccueil vueAccueil, HebergementDAOImpl hebergementDAO, VueConnexion vueConnexion,
+                   Reserver reserver, VueReservation vueReservation, ReservationDAOImpl reservationDAO,
+                   PaiementDAOImpl paiementDAO, AvisDAOImpl avisDAO, UserDAOImpl userDAO,
+                   ChambreDAOImpl chambreDAO, OptionDAOImpl optionDAO) {
+        this.vueAccueil = vueAccueil;
+        this.hebergementDAO = hebergementDAO;
+        this.vueConnexion = vueConnexion;
+        this.vueReservation = vueReservation;
+        this.reservationDAO = reservationDAO;
+        this.reserver = reserver;
+        this.paiementDAO = paiementDAO;
+        this.avisDAO = avisDAO;
+        this.userDAO = userDAO;
+        this.chambreDAO = chambreDAO;
+        this.optionDAO = optionDAO;
+
+        this.vueAccueil.ajouterEcouteur(this);
+        this.vueAccueil.setVisible(false);
+    }
+
+    /**
+     * Affiche la vue d'accueil avec la liste des hébergements.
+     */
+    public void afficherAccueil() {
+        hebergementsAffiches = hebergementDAO.getAll();
+        vueAccueil.afficherListeHebergements(hebergementsAffiches);
+        vueAccueil.setVisible(true);
+        vueConnexion.setVisible(false);
+    }
+
+    /**
+     * Gère les actions déclenchées par l'utilisateur dans la vue d'accueil.
+     *
+     * @param e L'événement déclenché.
+     */
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        String action = e.getActionCommand();
+
+        switch (action) {
+            case "RECHERCHER":
+                String lieu = vueAccueil.getLieuRecherche();
+                int nbPersonnes = vueAccueil.getNbPersonnes();
+                String dateDebut = vueAccueil.getDateDebut();
+                String dateFin = vueAccueil.getDateFin();
+
+                filtrerHebergements(lieu, nbPersonnes, dateDebut, dateFin);
+                break;
+
+            case "DECONNEXION":
+                vueAccueil.setVisible(false);
+                vueConnexion.setVisible(true);
+                break;
+
+            case "RESERVER":
+                vueReservation = new VueReservation(vueAccueil, hebergementDAO, chambreDAO);
+                reserver = new Reserver(vueAccueil, hebergementDAO, reservationDAO, paiementDAO, vueReservation, avisDAO, userDAO, chambreDAO);
+                vueReservation.ajouterEcouteur(reserver);
+                vueReservation.setVisible(true);
+                break;
+
+            case "NAV_MES_RESERVATIONS":
+                lancerVueMesReservations();
+                break;
+
+            case "NAV_ACCUEIL":
+                vueAccueil.setVisible(true);
+                break;
+
+            default:
+                vueAccueil.afficherMessage("Action inconnue : " + action);
+        }
+    }
+
+    /**
+     * Filtre les hébergements en fonction des critères de recherche.
+     *
+     * @param lieu Le lieu de recherche.
+     * @param nbPersonnes Le nombre de personnes.
+     * @param dateDebut La date de début.
+     * @param dateFin La date de fin.
+     */
+    private void filtrerHebergements(String lieu, int nbPersonnes, String dateDebut, String dateFin) {
+        ArrayList<Hebergement> tousHebergements = hebergementDAO.getAll();
+        List<Option> optionsSelectionnees = vueAccueil.getOptionsSelectionnees();
+
+        List<Hebergement> hebergementsFiltres = tousHebergements.stream()
+                .filter(h -> {
+                    boolean correspondLieu = h.getVille().toLowerCase().contains(lieu.toLowerCase()) ||
+                            h.getPays().toLowerCase().contains(lieu.toLowerCase());
+
+                    boolean correspondOptions = true;
+                    if (!optionsSelectionnees.isEmpty()) {
+                        ArrayList<Option> optionsHebergement = optionDAO.getOptionsPourHebergement(h.getId());
+
+                        for (Option optSelectionnee : optionsSelectionnees) {
+                            boolean trouvee = optionsHebergement.stream()
+                                    .anyMatch(opt -> opt.getId() == optSelectionnee.getId());
+                            if (!trouvee) {
+                                correspondOptions = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    return correspondLieu && correspondOptions;
+                })
+                .collect(Collectors.toList());
+
+        hebergementsAffiches = new ArrayList<>(hebergementsFiltres);
+        vueAccueil.afficherListeHebergements(hebergementsAffiches);
+    }
+
+    /**
+     * Lance la vue des réservations de l'utilisateur.
+     */
+    private void lancerVueMesReservations() {
+        VueMesReservations vueMesReservations = new VueMesReservations(reservationDAO, chambreDAO, hebergementDAO, avisDAO);
+        vueMesReservations.setVisible(true);
+    }
+}
