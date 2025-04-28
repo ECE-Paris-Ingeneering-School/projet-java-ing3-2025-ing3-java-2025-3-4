@@ -1,0 +1,63 @@
+package Controleur;
+
+import Dao.*;
+import Modele.*;
+import Vue.*;
+
+/**
+ * La classe Main est le point d'entrée de l'application.
+ * Elle initialise les DAO, les vues et les contrôleurs nécessaires pour le fonctionnement de l'application.
+ */
+public class Main {
+    public static void main(String[] args) {
+        DaoFactory dao = DaoFactory.getInstance("BookingApp-5", "root", "");
+
+        HebergementDAOImpl daoHebergement = new HebergementDAOImpl(dao);
+        UserDAOImpl daoUser = new UserDAOImpl(dao);
+        OptionDAOImpl optionDAO = new OptionDAOImpl(dao);
+
+        VueInscription vueInscription = new VueInscription();
+        VueConnexion vueConnexion = new VueConnexion();
+        VueAdmin vueAdmin = new VueAdmin();
+
+        VueAccueil vueAccueil = new VueAccueil(daoHebergement, optionDAO);
+        ChambreDAOImpl chambreDAO = new ChambreDAOImpl(dao);
+
+        ReservationDAOImpl daoReservation = new ReservationDAOImpl(dao);
+        VueReservation vueReservation = new VueReservation(vueAccueil, daoHebergement, chambreDAO);
+
+        PaiementDAOImpl paiementDAO = new PaiementDAOImpl(dao);
+        AvisDAOImpl avisDAO = new AvisDAOImpl(dao);
+
+        Reserver reserver = new Reserver(vueAccueil, daoHebergement, daoReservation, paiementDAO, vueReservation, avisDAO, daoUser, chambreDAO);
+        Accueil accueil = new Accueil(vueAccueil, daoHebergement, vueConnexion, reserver, vueReservation, daoReservation, paiementDAO, avisDAO, daoUser, chambreDAO, optionDAO);
+
+        VueAccueilAdmin vueAccueilAdmin = new VueAccueilAdmin();
+        OptionDAOImpl daoOption = new OptionDAOImpl(dao);
+        VueAjouterOption vueAjouterOption = new VueAjouterOption();
+        VueModifierSupprimerOption vueModifierSupprimerOption = new VueModifierSupprimerOption();
+        VueAssocierOptionsHebergement vueAssocierOptionsHebergement = new VueAssocierOptionsHebergement();
+        VueAjoutHebergement vueAjoutHebergement = new VueAjoutHebergement();
+        VueAjouterReduction vueAjouterReduction = new VueAjouterReduction();
+        ReductionDAOImpl reductionDAO = new ReductionDAOImpl(dao);
+        VueAjouterChambre vueAjouterChambre = new VueAjouterChambre();
+
+        AccueilAdmin controleurAdmin = new AccueilAdmin(
+                vueAccueilAdmin,
+                vueAjoutHebergement,
+                vueAjouterOption,
+                vueModifierSupprimerOption,
+                vueAssocierOptionsHebergement,
+                vueAjouterReduction,
+                daoOption,
+                daoHebergement,
+                reductionDAO,
+                vueAjouterChambre,
+                chambreDAO
+        );
+
+        new Inscription(daoUser, vueInscription, vueConnexion, vueAdmin, accueil, controleurAdmin);
+
+        dao.disconnect();
+    }
+}
